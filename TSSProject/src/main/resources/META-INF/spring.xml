@@ -48,7 +48,6 @@
 		<property name="interceptorNames">
 			<list>
 				<value>transactionInterceptor</value> 
-				<value>accessLogInterceptor</value>
 				<value>cacheInterceptor</value>
 			</list>
 		</property>

@@ -29,8 +29,9 @@ import com.jinhe.tss.util.URLUtil;
         locations={
         		"classpath:META-INF/remote/um-remote.xml",
         		"classpath:META-INF/remote/um-interceptor.xml",
+        		"classpath:META-INF/framework-spring.xml",
         		"classpath:META-INF/spring-mvc.xml",
-    		    "classpath:META-INF/spring-test.xml"
+    		    "classpath:META-INF/spring.xml"
         } 
       )
 @TransactionConfiguration(defaultRollback = false) // 不自动回滚，否则后续的test中没有初始化的数据
@@ -45,23 +46,17 @@ public class InitDatabase extends AbstractTransactionalJUnit4SpringContextTests 
     
     @Test
     public void initDatabase() {
-        log.info("create dm databse schema starting......");
+        log.info("create databse schema starting......");
  
-        TestUtil.excuteSQL(getInitSQLDir(), false);
+        String sqlPath = URLUtil.getResourceFileUrl("sql/mysql").getPath();
+        TestUtil.excuteSQL(sqlPath, false);
  
         OperatorDTO loginUser = new OperatorDTO(UMConstants.ADMIN_USER_ID, UMConstants.ADMIN_USER_NAME);
     	String token = TokenUtil.createToken("1234567890", UMConstants.ADMIN_USER_ID); 
         IdentityCard card = new IdentityCard(token, loginUser);
         Context.initIdentityInfo(card);
         
-        log.info("init dm databse over.");
+        log.info("init databse over.");
     }
-    
-    static String PROJECT_NAME = "jinhe-dm";
-    static String PACKAGE = "com/jinhe/dm";
-    static String getInitSQLDir() {
-        String path = URLUtil.getResourceFileUrl(PACKAGE).getPath();
-        String projectDir = path.substring(1, path.indexOf(PROJECT_NAME) + PROJECT_NAME.length());
-        return projectDir + "/sql/mysql";
-    }
+ 
 }
