@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>投诉明细</title>
+
+    <link rel="stylesheet" type="text/css" href="../../tools/easyui/themes/default/easyui.css">
+    <link rel="stylesheet" type="text/css" href="../../tools/easyui/themes/icon.css">
+    <link rel="stylesheet" type="text/css" href="../../dm/common.css">
+
+    <script src="../../tools/easyui/jquery.min.js"></script>
+    <script src="../../tools/easyui/jquery.easyui.min.js"></script>
+
+    <script src="../../framework/core.js"></script>
+    <script src="../../framework/ajax.js"></script>
+    <script src="../../dm/common.js"></script>
+
+    <script type="text/javascript">
+    var globalValiable = window.parent.globalValiable,
+        stlist = [],
+        sitelist = [],
+        companylist = [],
+        typelist = [],
+        tabH,
+        textW;
+
+    Array.prototype.contains = function(obj) {  
+        var i = this.length;  
+        while (i--) {  
+            if (this[i] === obj) {  
+                return true;  
+            }  
+        }  
+        return false;  
+    }  
+
+    window.onload = function() {
+        var table = document.getElementById('DetailTable');
+
+        table.style.height = (screen.height - 240) + 'px';
+        tabH = screen.height - 235;
+        textW = table.style.width - 1200;
+
+        if(globalValiable && globalValiable.data) {
+            queryParams = globalValiable.queryParams;
+
+            var originData = globalValiable.data;
+            for(var i = 0; i < originData.length; i++) {    
+                var st = originData[i]["罚款方类型"],
+                    site = originData[i]["罚款方"],
+                    company = originData[i]["分公司"],
+                    type = originData[i]["罚返款原因"];
+
+                if((!stlist.contains(st))&&(site != null)){
+                    stlist.push(st);
+                    document.getElementById("type1")
+                    .options.add(new Option(st,st));
+                }
+
+                if((!sitelist.contains(site))&&(site != null)){
+                    sitelist.push(site);
+                    document.getElementById("type2")
+                    .options.add(new Option(site,site));
+                }
+
+                if((!companylist.contains(company))&&(company != null)){
+                    companylist.push(company);
+                    document.getElementById("type3")
+                    .options.add(new Option(company,company));
+                }
+
+                if((!typelist.contains(type))&&(type != null)){
+                    typelist.push(type);
+                    document.getElementById("type4")
+                    .options.add(new Option(type,type));
+                }
+            }
+
+            ShowTable();
+            return;
+        }
+    } 
+
+    function ShowTable(){
+        var originData = globalValiable.data,
+            payertype = document.getElementById('type1').value,
+            payer = document.getElementById('type2').value,
+            company = document.getElementById('type3').value,
+            type = document.getElementById('type4').value,
+            approve = document.getElementById('type5').value,
+            complaint = document.getElementById('type6').value,
+            pay = document.getElementById('type7').value,
+            frozen = [],
+            columns = [],
+            data = [];
+
+        frozen.push({field:'code',title:'单号',align: 'left',width: 100});
+        columns.push({field:'complaint',title:'投诉日期',align: 'right',width: 80});
+        columns.push({field:'approve',title:'审批日期',align: 'right',width: 80});
+        columns.push({field:'cs',title:'投诉方',align: 'right',width: 80});
+        columns.push({field:'type',title:'罚返款原因',align: 'right',width: 70});
+        columns.push({field:'st',title:'罚款方类型',align: 'right',width: 70});
+        columns.push({field:'site',title:'罚款方',align: 'right',width: 80});
+        columns.push({field:'company',title:'分公司',align: 'right',width: 80});
+        columns.push({field:'num',title:'异常件数',align: 'right',width: 60});
+        columns.push({field:'detail',title:'投诉类型明细',align: 'right',width: 80});
+        columns.push({field:'cash',title:'罚款金额',align: 'right',width: 60});
+        columns.push({field:'rcash',title:'返款金额',align: 'right',width: 60});
+        columns.push({field:'text',title:'备注',align: 'left',width: textW});
+
+        for(var i = 0; i < originData.length; i++) {
+            var st = originData[i]["罚款方类型"],
+                site = originData[i]["罚款方"],
+                c = originData[i]["分公司"],
+                t= originData[i]["罚返款原因"],
+                arb = originData[i]["投诉成立"],
+                app = originData[i]["审批完结"],
+                p = originData[i]["产生罚款"],
+                valve = 1;
+
+            var temp = {
+            'code':originData[i]["单号"],
+            'complaint':originData[i]["投诉日期"],
+            'approve':originData[i]["审批日期"],
+            'cs':originData[i]["投诉方"],
+            'type':originData[i]["罚返款原因"],
+            'st':originData[i]["罚款方类型"],
+            'site':originData[i]["罚款方"],
+            'company':originData[i]["分公司"],
+            'num':originData[i]["异常件数值"],
+            'detail':originData[i]["投诉类型明细"],
+            'cash':originData[i]["罚款金额"],
+            'rcash':originData[i]["返款金额"],
+            'text':originData[i]["内容"]
+            };
+
+            if(!((payertype == 'all')||(payertype == st))){
+                valve = 0;
+            }
+
+            if(!((payer == 'all')||(payer == site))){
+                valve = 0;
+            }
+
+            if(!((company == 'all')||(company == c))){
+                valve = 0;
+            }
+
+            if(!((type == 'all')||(type == t))){
+                valve = 0;
+
+            }
+
+            if(!((approve == 'ignore')||(approve == app))){
+                valve = 0;
+            }
+
+            if(!((complaint == 'ignore')||(complaint == arb))){
+                valve = 0;
+            }
+
+            if(!((pay == 'ignore')||(pay == p))){
+                valve = 0;
+            }
+
+            if(valve){
+                data.push(temp);
+            }
+        }
+
+        $('#DetailTable').datagrid({  
+            width: 'auto',  
+            height:tabH,               
+            striped: true,  
+            rownumbers:true,  
+            frozenColumns:[frozen],   
+            columns:[columns],
+            data:data
+        });         
+    }
+    </script>
+
+    <style type="text/css">
+        dt {font-family:Microsoft YaHei;font-size:20px;}
+        dd {font-family:Microsoft YaHei;font-size:16px;text-indent:30px}
+    </style>
+</head>
+
+<body>
+    <div class="easyui-tabs" id='Tab' data-options='fit:true'>
+        <div title="细节表" id='TabTable' style="font-family:Microsoft YaHei;font-size:12px;">
+            罚款方类型: <select id="type1" style="font-family:Microsoft YaHei;font-size:12px;" onchange="ShowTable()">  
+            <option value="all">全部</option>  
+            </select>&nbsp;
+            罚款方: <select id="type2" style="font-family:Microsoft YaHei;font-size:12px;" onchange="ShowTable()">  
+            <option value="all">全部</option>  
+            </select>&nbsp;
+            分公司: <select id="type3" style="font-family:Microsoft YaHei;font-size:12px;" onchange="ShowTable()">  
+            <option value="all">全部</option>  
+            </select>&nbsp;
+            投诉类型: <select id="type4" style="font-family:Microsoft YaHei;font-size:12px;" onchange="ShowTable()">  
+            <option value="all">全部</option>  
+            </select>&nbsp;
+            审批完结: <select id="type5" style="font-family:Microsoft YaHei;font-size:12px;" onchange="ShowTable()">  
+            <option value="true">是</option>  
+            <option value="false">否</option>  
+            <option value="ignore">全部</option>
+            </select>&nbsp;
+            投诉成立: <select id="type6" style="font-family:Microsoft YaHei;font-size:12px;" onchange="ShowTable()">  
+            <option value="true">是</option>  
+            <option value="false">否</option>  
+            <option value="ignore">全部</option>
+            </select>&nbsp;
+            罚款产生: <select id="type7" style="font-family:Microsoft YaHei;font-size:12px;" onchange="ShowTable()">  
+            <option value="true">是</option>  
+            <option value="false">否</option>  
+            <option value="ignore">全部</option>  
+            </select>&nbsp;
+            <table id="DetailTable" style="height:640px"></table>      
+        </div>  
+        <div title="说明书" id='TabNotice'>
+            <dl>
+            <dt>时间节点</dt>
+            <dd>- 当日00:00至第二日日00:00</dd>
+            <dd>- 按审批时间计算</dd>
+            <dt>注意点</dt>
+            </dl>
+        </div>
+    </div>
+</body>
+</html>

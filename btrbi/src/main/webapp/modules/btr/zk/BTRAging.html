@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>时效总览</title>
+
+    <link rel="stylesheet" type="text/css" href="../../dm/common.css">
+    <link href="../../tools/bootstrap/css/buttons.css" rel="stylesheet">
+    <link href="../../tools/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../../tools/bootstrap/datatable/jquery.dataTables.min.css" rel="stylesheet">
+
+    <script src="../../tools/jquery/jquery-2.1.3.min.js"></script>
+    <script src="../../tools/bootstrap/js/bootstrap.min.js"></script>
+    <script src="../../tools/bootstrap/datatable/jquery.dataTables.min.js"></script>
+    <script src="../../tools/jquery/ZeroClipboard.js"></script>
+    <script src="../../tools/echarts-2.0.4/echarts-plain-map.js"></script>
+
+    <script src="../../framework/core.js"></script>
+    <script src="../../framework/ajax.js"></script>
+    <script src="../../dm/common.js"></script>
+
+    <script type="text/javascript">
+    var globalValiable = window.parent.globalValiable,
+        DayList = [],CenterList = [],CenterPList = [],CompanyList = [],
+        TrendSeries = [0,0,0,0,0,0],Frist = false,Relate = [],
+        MapShowMode = 1,MapType = false,DataType= true;
+
+    window.onload = function() {
+        var originData = globalValiable.data,
+            queryParams = globalValiable.queryParams,
+            trend = document.getElementById('TrendCanvas'),
+            List = document.getElementById("CenterList"),
+            List2 = document.getElementById("CenterList2"),
+            MyMap = document.getElementById('AgingMap');
+        trend.style.height = (screen.height - 265) + 'px';
+        MyMap.style.height = (screen.height - 255) + 'px';
+
+        if(queryParams.param3 == undefined){
+            List.options.add(new Option('全网','全网'));
+        }
+        for(var i = 0; i < originData.length; i++){
+            var inday = originData[i]["inday"],
+                center = originData[i]["send_center"],
+                company = originData[i]["send_org"];
+
+            if(!DayList.contains(inday)){
+                DayList.push(inday);
+            }
+            if(!CompanyList.contains(company)){
+                CompanyList.push(company);
+                if(queryParams.param3 == undefined){
+                    List.options.add(new Option(company,company));
+                }
+                else if(queryParams.param3.indexOf('公司') >= 0){
+                     List.options.add(new Option(company,company));    
+                }
+            }
+            if(!CenterList.contains(center)){
+                var temp = {};
+                temp.name = center;
+                temp.parent = company;
+                CenterList.push(center);
+                CenterPList.push(temp);
+                List.options.add(new Option(center,center));
+                List2.options.add(new Option(center,center));
+            }
+        }
+
+        SummaryTable();
+        DetailTable();
+        Map();
+        if(queryParams.param3 != undefined){
+            if(queryParams.param3.indexOf('分拨') >= 0){
+                document.getElementById("btn1").disabled = true;
+                document.getElementById("Tab3").disabled = true;
+                document.getElementById("Tab4").disabled = true;
+            }
+        }
+        $("#Tab1").click();
+        $("#net").click();
+        $("#op").click();  
+    } 
+
+    function Map(){
+        var originData = globalValiable.data,
+            selected = document.getElementById('CenterList2').value,
+            data = [],Disp = [],
+            datar = [],dataroute = {};
+
+        for(var i = 0; i < originData.length; i++){
+            var center = originData[i]["send_center"],
+                company = originData[i]["send_org"],
+                dcenter = originData[i]["disp_center"],
+                dcompany = originData[i]["disp_org"],
+                name,dname;
+
+            if(MapType){
+                name = company;
+                dname = dcompany;
+            }
+            else{
+                name = center;
+                dname = dcenter;
+            }   
+            if(name == selected){
+                if(!Disp.contains(dname)){
+                    data[dname] = {n:0,tn:0};
+                    Disp.push(dname);
+                }
+
+                if(DataType){
+                    data[dname].n += originData[i]["net_n"];
+                    data[dname].tn += originData[i]["net_tn"];
+                }
+                else{
+                    data[dname].n += originData[i]["cen_n"];
+                    data[dname].tn += originData[i]["cen_tn"];
+                }
+            }
+        }
+
+        dataroute = [];
+        for(var d in Disp){
+            if((d != 'contains')&&(data[Disp[d]].tn > 0)){
+                var temp = {},tr = Disp[d],
+                    send = (selected.replace(/分拨/, "")).replace(/分公司/, ""),
+                    disp = (Disp[d].replace(/分拨/, "")).replace(/分公司/, "");
+                temp = [];
+                var r = Math.round(data[tr].n/data[tr].tn*1000)/10;
+
+                dataroute.push({name:disp,value:r});
+                if(MapShowMode < 3){
+                    temp.push({name:send});
+                    temp.push({name:disp,value:r});
+                    if((r > 0)||(MapShowMode == 2)){
+                        datar.push(temp);
+                    }
+                }
+            }
+        }
+
+        var series = [
+        {
+            name: '全国',
+            type: 'map',
+            roam: true,
+            hoverable: false,
+            mapType: 'china',
+            itemStyle:{
+                normal:{
+                    borderColor:'rgba(0,0,0,1)',
+                    borderWidth:1,
+                    areaStyle:{
+                        color: '#F1DEA3'
+                    }
+                }
+            },
+            data:[],
+            markLine : {
+                smooth:true,
+                symbol: ['none', 'circle'],  
+                symbolSize : 1,
+                itemStyle : {
+                    normal: {
+                        color:'#fff',
+                        borderWidth:1,
+                        borderColor:'rgba(255,255,255,0.5)'
+                    }
+                },
+                data : [],
+            },
+            geoCoord: {
+                '浙江':[120.1801,30.2563],
+                '江苏':[118.8477,31.9564],
+                '安徽':[117.29,32.0581],
+                '河北':[114.4995,38.1006],
+                '广东':[113.5107,23.2196],
+                '山东':[117.1582,36.8701],
+                '福建':[119.4543,25.9222],
+                '湖北':[114.154,30.6186],
+                '河南':[113.4668,34.6234],
+                '四川':[104.063635,30.668507],
+                '重庆':[106.556469,29.599061],
+                '陕西':[108.964215,34.298895],
+
+
+
+                '北京南':[116.35479,39.817327],
+                '成都': [104.063635,30.668507],
+                '南充': [106.07354,30.80558],
+                '绵阳': [104.679945,31.486005],
+                '自贡': [104.790328,29.373703],
+                '重庆': [106.556469,29.599061],
+                '重庆万州': [108.3847,30.815505],
+                '重庆巴南': [106.533472,29.395859],
+                '西安': [108.964215,34.298895],
+                '南平':[118.187657,26.649245],
+                '龙岗':[113.827742,22.911249],
+                '阜阳':[115.823,32.894],
+                '莆田':[119.023,25.444],
+                '佛山':[113.1207,22.9925],
+                '上海': [121.335,31.1342],
+                '金山': [121.3296,30.9478],
+                '上海市区': [121.5491,31.2269],
+                '浦东': [121.8119,31.455],
+                '合肥': [117.29,32.0581],
+                '芜湖': [118.4404,31.3383],
+                '蚌埠': [117.3975,32.9039],
+                '萧山': [120.291937,30.248203],
+                '杭州': [120.361556,30.337326],
+                '嘉兴': [120.7711,30.7402],
+                '金华': [119.635,29.1137],
+                '台州': [121.4334,28.6461],
+                '温州': [120.7136,27.9724],
+                '宁波': [121.5622,29.8782],
+                '衢州': [118.9037,28.9419],
+                '丽水': [119.9547,28.4187],
+                '苏州': [120.6083,31.2811],
+                '南京': [118.8477,31.9564],
+                '盐城': [120.1794,33.35],
+                '泰州': [119.9345,32.4761],
+                '南通': [120.8934,31.9913],
+                '淮安': [119.079,33.5977],
+                '徐州': [117.2013,34.2313],
+                '扬州': [119.4401,32.3844],
+                '常州': [119.9667,31.7892],
+                '宿迁': [118.2856,33.9108],
+                '南京市区': [118.9188,32.103],
+                '北京北': [116.6602,40.1299],
+                '北京': [116.4713,39.9452],
+                '唐山': [118.4766,39.6826],
+                '保定': [115.0488,39.0948],
+                '邯郸': [114.5022,36.586],
+                '石家庄': [114.4995,38.1006],
+                '天津': [117.4219,39.4189],
+                '漳州': [117.6763,24.5078],
+                '福州': [119.4543,25.9222],
+                '厦门': [118.1689,24.6478],
+                '泉州': [118.3228,25.1147],
+                '郑州': [113.4668,34.6234],
+                '洛阳': [112.4445,34.6533],
+                '新乡': [113.9347,35.2668],
+                '武昌': [114.3616,30.5419],
+                '武汉': [114.154,30.6186],
+                '临沂': [118.3118,35.2936],
+                '济南': [117.1582,36.8701],
+                '潍坊': [119.0918,36.524],
+                '烟台': [120.7397,37.5128],
+                '济宁': [116.8286,35.3375],
+                '青岛': [120.4651,36.3373],
+                '菏泽': [115.6201,35.2057],
+                '中山': [113.4229,22.478],
+                '汕头': [117.1692,23.3405],
+                '海口': [110.3893,19.8516],
+                '江门': [112.6318,22.1484],
+                '惠州': [114.6204,23.1647],
+                '广州': [113.5107,23.2196],
+                '深圳': [114.2566,22.7069],
+                '深圳清水河': [114.1359,22.5499],
+                '番禺': [113.4018,22.9292],
+                '新塘': [113.8341,23.2717],
+                '大朗': [113.9491,22.9478],
+                '珠海': [113.5656,22.2493],
+                '虎门': [113.6856,22.8184]               
+            }
+        },
+        {
+            name: 'Aging',
+            type: 'map',
+            mapType: 'china',
+            data:[],
+            markLine : {
+                smooth:true,
+                effect : {
+                    show: true,
+                    scaleSize: 1,
+                    period: 30,
+                    color: '#fff',
+                    shadowBlur: 10
+                },
+                itemStyle : {
+                    normal: {
+                        borderWidth:1,
+                        lineStyle: {
+                            type: 'solid',
+                            shadowBlur: 10
+                        }
+                    }
+                },
+                data : datar
+            },
+            markPoint : {
+                symbol:'emptyCircle',
+                symbolSize : function (v){
+                    return 11 - v/10;
+                },
+                effect : {
+                    show: false,
+                    shadowBlur : 0
+                },
+                itemStyle:{
+                    normal:{
+                        label:{show:false}
+                    },
+                    emphasis:{
+                        label:{
+                            textStyle:{fontSize:'20',fontFamily:'Microsoft YaHei'}
+                        }
+                    }
+                },
+                data : dataroute
+            }
+        }]
+        if(MapShowMode == 3){
+            series.push({
+            name: 'Home',
+            type: 'map',
+            mapType: 'china',
+            data:[],
+            markPoint : {
+                symbol:'image://./zk_images/flag.png',
+                symbolSize:10,
+                effect : {
+                    show: false,
+                    shadowBlur : 0
+                },
+                itemStyle:{
+                    normal:{
+                        label:{show:false}
+                    },
+                    emphasis:{
+                        label:{show:false}
+                    }
+                },
+                data : [{name:(selected.replace(/分拨/, "")).replace(/分公司/, ""),value:50}]
+            }
+        });
+        }
+
+        var myChart = echarts.init(document.getElementById('AgingMap'));
+ 
+var option = {
+    backgroundColor: '#F1DEA3',
+    color: ['gold','aqua','lime'],
+    tooltip : {
+        trigger: 'item',
+        formatter: function (v) {
+            var str = '';
+            if(v[0] == 'Aging'){
+                if(v[1].indexOf('>')>0){
+                    str = v[1].replace(':', ' →    ') + v[3] + '%';
+                }
+                else{
+                    str = v[1] + ':' + v[2] + '%';
+                }
+            }
+            else{
+                str = v[1];
+            }
+            return str;
+        }
+    },
+    dataRange: {
+        min : 0,
+        max : 100,
+        calculable : true,
+        color: ['#0067A6','#008972','yellow','#EFC028','orange', '#E82C0C','red'],
+        textStyle:{color:'#000',fontFamily:'Microsoft YaHei'}
+    },
+    series : series
+};         
+        myChart.setOption(option);
+    }
+
+    function DetailTable(){
+        var originData = globalValiable.data,
+            data = [],dataP = [],dataD = [];          
+
+        for(var d in DayList){
+            if(d != 'contains'){
+                var inday = DayList[d];
+                dataP[inday] = [];
+                data[inday] = [];
+
+                dataP[inday]['total'] = {n:0,tn:0,nadd:0,tadd:0,cn:0,ctn:0,cnadd:0,ctadd:0,ipn:0,iptn:0,opn:0,optn:0};
+                data[inday]['total'] = {nr:'',nra:'',or:'',ora:'',ipr:'',opr:''};
+
+                for(c in CenterList){
+                    if(c != 'contains'){
+                        var center = CenterList[c];
+                        dataP[inday][center] = {n:0,tn:0,nadd:0,tadd:0,cn:0,ctn:0,cnadd:0,ctadd:0,ipn:0,iptn:0,opn:0,optn:0,parent:company};
+                        data[inday][center] = {nr:'',nra:'',or:'',ora:'',ipr:'',opr:''};
+                    }
+                }
+
+                for(p in CompanyList){
+                    if(p != 'contains'){
+                        var company = CompanyList[p];
+                        dataP[inday][company] = {n:0,tn:0,nadd:0,tadd:0,cn:0,ctn:0,cnadd:0,ctadd:0,ipn:0,iptn:0,opn:0,optn:0};
+                        data[inday][company] = {nr:'',nra:'',or:'',ora:'',ipr:'',opr:''};
+                    }
+                }
+            }
+        }
+
+        for(var i = 0; i < originData.length; i++){
+            var inday = originData[i]["inday"],
+                center = originData[i]["send_center"],
+                company = originData[i]["send_org"];
+
+            if(dataD[center] == null){
+                dataD[center] = {n:0,tn:0,nadd:0,tadd:0,cn:0,ctn:0,cnadd:0,ctadd:0,ipn:0,iptn:0,opn:0,optn:0};
+            }
+            if(dataD[company] == null){
+                dataD[company] = {n:0,tn:0,nadd:0,tadd:0,cn:0,ctn:0,cnadd:0,ctadd:0,ipn:0,iptn:0,opn:0,optn:0};
+            }
+            if(dataD['total'] == null){
+                dataD['total'] = {n:0,tn:0,nadd:0,tadd:0,cn:0,ctn:0,cnadd:0,ctadd:0,ipn:0,iptn:0,opn:0,optn:0};
+            }
+            if(!Relate.contains(center)){
+                Relate[center] = company;
+            }
+
+            dataP[inday][center].parent = company;
+            dataP[inday][center].n += originData[i]["net_n"];
+            dataP[inday][center].tn += originData[i]["net_tn"];
+            dataP[inday][center].nadd += originData[i]["net_add"];
+            dataP[inday][center].tadd += originData[i]["net_tadd"];
+            dataP[inday][center].cn += originData[i]["cen_n"];
+            dataP[inday][center].ctn += originData[i]["cen_tn"];
+            dataP[inday][center].cnadd += originData[i]["cen_add"];
+            dataP[inday][center].ctadd += originData[i]["cen_tadd"];
+            dataP[inday][center].ipn += originData[i]["ipn"];
+            dataP[inday][center].iptn += originData[i]["iptn"];
+            dataP[inday][center].opn += originData[i]["opn"];
+            dataP[inday][center].optn += originData[i]["optn"];
+
+            dataP[inday][company].n += originData[i]["net_n"];
+            dataP[inday][company].tn += originData[i]["net_tn"];
+            dataP[inday][company].nadd += originData[i]["net_add"];
+            dataP[inday][company].tadd += originData[i]["net_tadd"];
+            dataP[inday][company].cn += originData[i]["cen_n"];
+            dataP[inday][company].ctn += originData[i]["cen_tn"];
+            dataP[inday][company].cnadd += originData[i]["cen_add"];
+            dataP[inday][company].ctadd += originData[i]["cen_tadd"];
+            dataP[inday][company].ipn += originData[i]["ipn"];
+            dataP[inday][company].iptn += originData[i]["iptn"];
+            dataP[inday][company].opn += originData[i]["opn"];
+            dataP[inday][company].optn += originData[i]["optn"];
+
+            dataP[inday]['total'].n += originData[i]["net_n"];
+            dataP[inday]['total'].tn += originData[i]["net_tn"];
+            dataP[inday]['total'].nadd += originData[i]["net_add"];
+            dataP[inday]['total'].tadd += originData[i]["net_tadd"];
+            dataP[inday]['total'].cn += originData[i]["cen_n"];
+            dataP[inday]['total'].ctn += originData[i]["cen_tn"];
+            dataP[inday]['total'].cnadd += originData[i]["cen_add"];
+            dataP[inday]['total'].ctadd += originData[i]["cen_tadd"];
+            dataP[inday]['total'].ipn += originData[i]["ipn"];
+            dataP[inday]['total'].iptn += originData[i]["iptn"];
+            dataP[inday]['total'].opn += originData[i]["opn"];
+            dataP[inday]['total'].optn += originData[i]["optn"];
+
+            dataD[center].n += originData[i]["net_n"];
+            dataD[center].tn += originData[i]["net_tn"];
+            dataD[center].nadd += originData[i]["net_add"];
+            dataD[center].tadd += originData[i]["net_tadd"];
+            dataD[center].cn += originData[i]["cen_n"];
+            dataD[center].ctn += originData[i]["cen_tn"];
+            dataD[center].cnadd += originData[i]["cen_add"];
+            dataD[center].ctadd += originData[i]["cen_tadd"];
+            dataD[center].ipn += originData[i]["ipn"];
+            dataD[center].iptn += originData[i]["iptn"];
+            dataD[center].opn += originData[i]["opn"];
+            dataD[center].optn += originData[i]["optn"];
+
+            dataD[company].n += originData[i]["net_n"];
+            dataD[company].tn += originData[i]["net_tn"];
+            dataD[company].nadd += originData[i]["net_add"];
+            dataD[company].tadd += originData[i]["net_tadd"];
+            dataD[company].cn += originData[i]["cen_n"];
+            dataD[company].ctn += originData[i]["cen_tn"];
+            dataD[company].cnadd += originData[i]["cen_add"];
+            dataD[company].ctadd += originData[i]["cen_tadd"];
+            dataD[company].ipn += originData[i]["ipn"];
+            dataD[company].iptn += originData[i]["iptn"];
+            dataD[company].opn += originData[i]["opn"];
+            dataD[company].optn += originData[i]["optn"];
+
+            dataD['total'].n += originData[i]["net_n"];
+            dataD['total'].tn += originData[i]["net_tn"];
+            dataD['total'].nadd += originData[i]["net_add"];
+            dataD['total'].tadd += originData[i]["net_tadd"];
+            dataD['total'].cn += originData[i]["cen_n"];
+            dataD['total'].ctn += originData[i]["cen_tn"];
+            dataD['total'].cnadd += originData[i]["cen_add"];
+            dataD['total'].ctadd += originData[i]["cen_tadd"];
+            dataD['total'].ipn += originData[i]["ipn"];
+            dataD['total'].iptn += originData[i]["iptn"];
+            dataD['total'].opn += originData[i]["opn"];
+            dataD['total'].optn += originData[i]["optn"];
+        }
+
+        for(var d in DayList){
+            for(var c in CenterList){
+                if((c != 'contains')&&(d != 'contains')){
+                    var temp = dataP[DayList[d]][CenterList[c]];
+                    data[DayList[d]][CenterList[c]].nr = Rate(temp.n,temp.tn);
+                    data[DayList[d]][CenterList[c]].nra = Rate(temp.nadd,temp.tadd);
+                    data[DayList[d]][CenterList[c]].or = Rate(temp.cn,temp.ctn);
+                    data[DayList[d]][CenterList[c]].ora = Rate(temp.cnadd,temp.ctadd);
+                    data[DayList[d]][CenterList[c]].ipr = Rate(temp.ipn,temp.iptn);
+                    data[DayList[d]][CenterList[c]].opr = Rate(temp.opn,temp.optn);
+                    data[DayList[d]][CenterList[c]].parent = temp.parent;
+                }
+            }
+
+            for(var c in CompanyList){
+                if((c != 'contains')&&(d != 'contains')){
+                    var temp = dataP[DayList[d]][CompanyList[c]];
+                    data[DayList[d]][CompanyList[c]].nr = Rate(temp.n,temp.tn);
+                    data[DayList[d]][CompanyList[c]].nra = Rate(temp.nadd,temp.tadd);
+                    data[DayList[d]][CompanyList[c]].or = Rate(temp.cn,temp.ctn);
+                    data[DayList[d]][CompanyList[c]].ora = Rate(temp.cnadd,temp.ctadd);
+                    data[DayList[d]][CompanyList[c]].ipr = Rate(temp.ipn,temp.iptn);
+                    data[DayList[d]][CompanyList[c]].opr = Rate(temp.opn,temp.optn);
+                }
+            }
+
+            if(d != 'contains'){
+                var temp = dataP[DayList[d]]['total'];
+                data[DayList[d]]['total'].nr = Rate(temp.n,temp.tn);
+                data[DayList[d]]['total'].nra = Rate(temp.nadd,temp.tadd);
+                data[DayList[d]]['total'].or = Rate(temp.cn,temp.ctn);
+                data[DayList[d]]['total'].ora = Rate(temp.cnadd,temp.ctadd);
+                data[DayList[d]]['total'].ipr = Rate(temp.ipn,temp.iptn);
+                data[DayList[d]]['total'].opr = Rate(temp.opn,temp.optn);
+            }
+        }
+
+        WeMadeTable('Table1','nr','n','tn',data,dataD);
+        WeMadeTable('Table2','nra','nadd','tadd',data,dataD);
+        WeMadeTable('Table3','or','cn','ctn',data,dataD);
+        WeMadeTable('Table4','ora','cnadd','ctadd',data,dataD);
+        WeMadeTable('Table5','ipr','ipn','iptn',data,dataD);
+        WeMadeTable('Table6','opr','opn','optn',data,dataD);
+    }
+
+    function WeMadeTable(MyTable,index,n,tn,data,dataD){
+        var queryParams = globalValiable.queryParams,
+            table = document.getElementById(MyTable),
+            count = 1;
+//////////////////////////////////添加表头
+        var h = table.createTHead().insertRow();
+        var td = h.insertCell(0);  
+        td.innerText = '序列';
+        td.style.textAlign = 'left';
+        td.style.color = '#999';
+        var td = h.insertCell(1);  
+        td.innerText = '名称';
+        td.style.textAlign = 'left';
+        td.style.color = '#999';
+        for(var i = 0; i < DayList.length; i++){
+            var td = h.insertCell(i + 2);  
+            td.innerText = DayList[i].substr(DayList[i].indexOf('/') + 1);
+            td.style.textAlign = 'right';
+            td.style.color = '#999';
+        }
+        var td = h.insertCell(DayList.length + 2);  
+        td.innerText = '累计';
+        td.style.textAlign = 'right';
+        td.style.color = '#999';
+/////////////////////////////////////创建表格
+        var tbody = table.appendChild(document.createElement("tbody"));
+        var tr = tbody.appendChild(document.createElement("tr"));
+        if(queryParams.param3 == undefined){
+            var td = tr.insertCell(0); 
+            td.innerText = count++;
+            td.style.textAlign = 'left';
+            td.style.color = '#337AB7';
+            var td = tr.insertCell(1); 
+            td.innerText = '全网';
+            td.style.textAlign = 'left';
+            td.style.color = '#337AB7';
+            for(var i = 0; i < DayList.length; i++){
+                var td = tr.insertCell(i + 2);
+                td.innerText = data[DayList[i]]['total'][index];
+                td.style.textAlign = 'right';
+                td.style.color = '#337AB7';
+            }
+            var td = tr.insertCell(DayList.length + 2);
+            td.innerText = Rate(dataD['total'][n],dataD['total'][tn]);
+            td.style.textAlign = 'right';
+            td.style.color = '#337AB7';
+        }
+
+        for(p in CompanyList){
+            if(p != 'contains'){
+                var tr = tbody.appendChild(document.createElement("tr"));
+                var td = tr.insertCell(0); 
+                td.innerText = count++;
+                td.style.textAlign = 'left';
+                td.style.color = '#337AB7';
+                var td = tr.insertCell(1); 
+                td.innerText = CompanyList[p];
+                td.style.textAlign = 'left';
+                td.style.color = '#337AB7';
+                for(var i = 0; i < DayList.length; i++){
+                    var td = tr.insertCell(i + 2);
+                    td.innerText = data[DayList[i]][CompanyList[p]][index];
+                    td.style.textAlign = 'right';
+                    td.style.color = '#337AB7';
+                }
+                var td = tr.insertCell(DayList.length + 2);
+                td.innerText = Rate(dataD[CompanyList[p]][n],dataD[CompanyList[p]][tn]);
+                td.style.textAlign = 'right';
+                td.style.color = '#337AB7';
+
+                for(c in CenterList){
+                    if(c != 'contains'){
+                        if(Relate[CenterList[c]] == CompanyList[p]){
+                            var tr = tbody.appendChild(document.createElement("tr"));
+                            var td = tr.insertCell(0); 
+                            td.innerText = count++;
+                            td.style.textAlign = 'left';
+                            var td = tr.insertCell(1); 
+                            td.innerText = CenterList[c];
+                            td.style.textAlign = 'left';
+                            for(var i = 0; i < DayList.length; i++){
+                                var td = tr.insertCell(i + 2);
+                                td.innerText = data[DayList[i]][CenterList[c]][index];
+                                td.style.textAlign = 'right';
+                            }
+                            var td = tr.insertCell(DayList.length + 2);
+                            td.innerText = Rate(dataD[CenterList[c]][n],dataD[CenterList[c]][tn]);
+                            td.style.textAlign = 'right';
+                        }   
+                    }
+                }
+            }
+        }
+
+        if(queryParams.param3 == undefined){
+            $('#' + MyTable).dataTable({
+                "bPaginate": false,
+                "sProcessing": "正在加载中......", 
+                "oPaginate": false, 
+                "sInfoFiltered":false,
+                "sInfo":false,
+                "bLengthChange":false,
+                "sZeroRecords": "没有符合相关条件的数据TAT",                     
+                "sEmptyTable": "表中无数据存在0_o", 
+            });
+        }
+    }
+
+    function SummaryTable(){
+        var originData = globalValiable.data,
+            queryParams = globalValiable.queryParams,
+            nav = document.getElementById("NavSummary"),
+            table = document.getElementById("SummaryTable"),
+            dataC = [],dataP = [],count = 1,
+            dataA = {n:0,tn:0,nadd:0,tadd:0,cn:0,ctn:0,cnadd:0,ctadd:0,ipn:0,iptn:0,opn:0,optn:0};
+
+        for(var i = 0; i < originData.length; i++){
+            var center = originData[i]["send_center"],
+                company = originData[i]["send_org"];
+
+            if(dataP[company] == null){
+                dataP[company] = {n:0,tn:0,nadd:0,tadd:0,cn:0,ctn:0,cnadd:0,ctadd:0,ipn:0,iptn:0,opn:0,optn:0};
+            }
+            if(dataC[center] == null){
+                dataC[center] = {n:0,tn:0,nadd:0,tadd:0,cn:0,ctn:0,cnadd:0,ctadd:0,ipn:0,iptn:0,opn:0,optn:0,parent:company};
+            }
+
+            dataC[center].n += originData[i]["net_n"];
+            dataC[center].tn += originData[i]["net_tn"];
+            dataC[center].nadd += originData[i]["net_add"];
+            dataC[center].tadd += originData[i]["net_tadd"];
+            dataC[center].cn += originData[i]["cen_n"];
+            dataC[center].ctn += originData[i]["cen_tn"];
+            dataC[center].cnadd += originData[i]["cen_add"];
+            dataC[center].ctadd += originData[i]["cen_tadd"];
+            dataC[center].ipn += originData[i]["ipn"];
+            dataC[center].iptn += originData[i]["iptn"];
+            dataC[center].opn += originData[i]["opn"];
+            dataC[center].optn += originData[i]["optn"];
+
+            dataP[company].n += originData[i]["net_n"];
+            dataP[company].tn += originData[i]["net_tn"];
+            dataP[company].nadd += originData[i]["net_add"];
+            dataP[company].tadd += originData[i]["net_tadd"];
+            dataP[company].cn += originData[i]["cen_n"];
+            dataP[company].ctn += originData[i]["cen_tn"];
+            dataP[company].cnadd += originData[i]["cen_add"];
+            dataP[company].ctadd += originData[i]["cen_tadd"];
+            dataP[company].ipn += originData[i]["ipn"];
+            dataP[company].iptn += originData[i]["iptn"];
+            dataP[company].opn += originData[i]["opn"];
+            dataP[company].optn += originData[i]["optn"];
+
+            dataA.n += originData[i]["net_n"];
+            dataA.tn += originData[i]["net_tn"];
+            dataA.nadd += originData[i]["net_add"];
+            dataA.tadd += originData[i]["net_tadd"];
+            dataA.cn += originData[i]["cen_n"];
+            dataA.ctn += originData[i]["cen_tn"];
+            dataA.cnadd += originData[i]["cen_add"];
+            dataA.ctadd += originData[i]["cen_tadd"];
+            dataA.ipn += originData[i]["ipn"];
+            dataA.iptn += originData[i]["iptn"];
+            dataA.opn += originData[i]["opn"];
+            dataA.optn += originData[i]["optn"];
+        }
+/////////////////////////////////////创建表头
+        var h = table.createTHead().insertRow();
+        var td = h.insertCell(0);  
+        td.innerText = '序列';
+        td.style.textAlign = 'left';
+        td.style.color = '#999';
+        var td = h.insertCell(1);  
+        td.innerText = '名称';
+        td.style.textAlign = 'left';
+        td.style.color = '#999';
+        var td = h.insertCell(2);  
+        td.innerText = '客户时效达成率';
+        td.style.textAlign = 'right';
+        td.style.color = '#999';
+        var td = h.insertCell(3);  
+        td.innerText = '客户加一达成率';
+        td.style.textAlign = 'right';
+        td.style.color = '#999';
+        var td = h.insertCell(4);  
+        td.innerText = '运营时效达成率';
+        td.style.textAlign = 'right';
+        td.style.color = '#999';
+        var td = h.insertCell(5);  
+        td.innerText = '运营加一达成率';
+        td.style.textAlign = 'right';
+        td.style.color = '#999';
+        var td = h.insertCell(6);  
+        td.innerText = '交件准点率';
+        td.style.textAlign = 'right';
+        td.style.color = '#999';
+        var td = h.insertCell(7);  
+        td.innerText = '接件准点率';
+        td.style.textAlign = 'right';
+        td.style.color = '#999';
+////////////////////////////////////////创建表格
+        var tbody = table.appendChild(document.createElement("tbody"));
+        if(queryParams.param3 == undefined){
+            var tr = tbody.appendChild(document.createElement("tr"));
+            var td = tr.insertCell(0); 
+            td.innerText = count++;
+            td.style.textAlign = 'left';
+            var td = tr.insertCell(1); 
+            td.innerText = '全网';
+            td.style.textAlign = 'left';
+            td.style.color = '#337AB7';
+            var td = tr.insertCell(2);
+            td.innerText = Rate(dataA.n,dataA.tn);
+            td.style.textAlign = 'right';
+            td.style.color = '#337AB7';
+            var td = tr.insertCell(3);
+            td.innerText = Rate(dataA.nadd,dataA.tadd);
+            td.style.textAlign = 'right';
+            td.style.color = '#337AB7';
+            var td = tr.insertCell(4);
+            td.innerText = Rate(dataA.cn,dataA.ctn);
+            td.style.textAlign = 'right';
+            td.style.color = '#337AB7';
+            var td = tr.insertCell(5);
+            td.innerText = Rate(dataA.cnadd,dataA.ctadd);
+            td.style.textAlign = 'right';
+            td.style.color = '#337AB7';
+            var td = tr.insertCell(6);
+            td.innerText = Rate(dataA.ipn,dataA.iptn);
+            td.style.textAlign = 'right';
+            td.style.color = '#337AB7';
+            var td = tr.insertCell(7);
+            td.innerText = Rate(dataA.opn,dataA.optn);
+            td.style.textAlign = 'right';
+            td.style.color = '#337AB7';
+        }
+
+        for(var p in CompanyList){
+            if(p != 'contains'){
+                var temp = CompanyList[p],
+                    tr = tbody.appendChild(document.createElement("tr"));
+                tr.setAttribute("class", "success"); 
+                var td = tr.insertCell(0); 
+                td.innerText = count++;
+                td.style.textAlign = 'left';
+                td.style.color = '#337AB7';
+                var td = tr.insertCell(1); 
+                td.innerText = temp;
+                td.style.textAlign = 'left';
+                td.style.color = '#337AB7';
+                var td = tr.insertCell(2);
+                td.innerText = Rate(dataP[temp].n,dataP[temp].tn);
+                td.style.textAlign = 'right';
+                td.style.color = '#337AB7';
+                var td = tr.insertCell(3);
+                td.innerText = Rate(dataP[temp].nadd,dataP[temp].tadd);
+                td.style.textAlign = 'right';
+                td.style.color = '#337AB7';
+                var td = tr.insertCell(4);
+                td.innerText = Rate(dataP[temp].cn,dataP[temp].ctn);
+                td.style.textAlign = 'right';
+                td.style.color = '#337AB7';
+                var td = tr.insertCell(5);
+                td.innerText = Rate(dataP[temp].cnadd,dataP[temp].ctadd);
+                td.style.textAlign = 'right';
+                td.style.color = '#337AB7';
+                var td = tr.insertCell(6);
+                td.innerText = Rate(dataP[temp].ipn,dataP[temp].iptn);
+                td.style.textAlign = 'right';
+                td.style.color = '#337AB7';
+                var td = tr.insertCell(7);
+                td.innerText = Rate(dataP[temp].opn,dataP[temp].optn);
+                td.style.textAlign = 'right';
+                td.style.color = '#337AB7';
+
+                for(var c in CenterList){
+                    if((c != 'contains')&&(dataC[CenterList[c]].parent == temp)){
+                        var t = CenterList[c],
+                            tr = tbody.appendChild(document.createElement("tr"));
+                        var td = tr.insertCell(0); 
+                        td.innerText = count++;
+                        td.style.textAlign = 'left';
+                        var td = tr.insertCell(1); 
+                        td.innerText = t;
+                        td.style.textAlign = 'left';
+                        var td = tr.insertCell(2);
+                        td.innerText = Rate(dataC[t].n,dataC[t].tn);
+                        td.style.textAlign = 'right';
+                        var td = tr.insertCell(3);
+                        td.innerText = Rate(dataC[t].nadd,dataC[t].tadd);
+                        td.style.textAlign = 'right';
+                        var td = tr.insertCell(4);
+                        td.innerText = Rate(dataC[t].cn,dataC[t].ctn);
+                        td.style.textAlign = 'right';
+                        var td = tr.insertCell(5);
+                        td.innerText = Rate(dataC[t].cnadd,dataC[t].ctadd);
+                        td.style.textAlign = 'right';
+                        var td = tr.insertCell(6);
+                        td.innerText = Rate(dataC[t].ipn,dataC[t].iptn);
+                        td.style.textAlign = 'right';
+                        var td = tr.insertCell(7);
+                        td.innerText = Rate(dataC[t].opn,dataC[t].optn);
+                        td.style.textAlign = 'right';
+                    }
+                }
+            }
+        }
+
+        $('#SummaryTable').dataTable({
+            "bPaginate": false,
+            "sProcessing": "正在加载中......", 
+            "oPaginate": false, 
+            "sInfoFiltered":false,
+            "sInfo":false,
+            "bLengthChange":false,
+            "sZeroRecords": "没有符合相关条件的数据TAT",                     
+            "sEmptyTable": "表中无数据存在0_o", 
+        });
+    }
+
+    function Trend(){
+        var originData = globalValiable.data,
+            Selected = document.getElementById("CenterList").value,
+            data = [[],[],[],[],[],[]],
+            SeriesName = ['客户时效','客户加一','运营时效','运营加一','交件准点','接件准点'],
+            LineType = ['solid','dashed','solid','dashed','dotted','dotted'],
+            LineColor = ['#337AB7','#337AB7','#008972','#008972','#F2572D','#A488A5'],
+            datap = [],series = [],datalegend = [],
+            min = 100,max = 0;
+
+        for(var i = 0; i < originData.length; i++){
+            var inday = originData[i]["inday"],
+                center = originData[i]["send_center"],
+                company = originData[i]["send_org"];
+
+            if((Selected == '全网')||(Selected == center)||(Selected == company)){
+                if(datap[inday] == null){
+                    datap[inday] = {};
+                    datap[inday].n = originData[i]["net_n"];
+                    datap[inday].tn = originData[i]["net_tn"];
+                    datap[inday].nadd = originData[i]["net_add"];
+                    datap[inday].tadd = originData[i]["net_tadd"];
+                    datap[inday].cn = originData[i]["cen_n"];
+                    datap[inday].ctn = originData[i]["cen_tn"];
+                    datap[inday].cnadd = originData[i]["cen_add"];
+                    datap[inday].ctadd = originData[i]["cen_tadd"];
+                    datap[inday].ipn = originData[i]["ipn"];
+                    datap[inday].iptn = originData[i]["iptn"];
+                    datap[inday].opn = originData[i]["opn"];
+                    datap[inday].optn = originData[i]["optn"];
+                }
+                else{
+                    datap[inday].n += originData[i]["net_n"];
+                    datap[inday].tn += originData[i]["net_tn"];
+                    datap[inday].nadd += originData[i]["net_add"];
+                    datap[inday].tadd += originData[i]["net_tadd"];
+                    datap[inday].cn += originData[i]["cen_n"];
+                    datap[inday].ctn += originData[i]["cen_tn"];
+                    datap[inday].cnadd += originData[i]["cen_add"];
+                    datap[inday].ctadd += originData[i]["cen_tadd"];
+                    datap[inday].ipn += originData[i]["ipn"];
+                    datap[inday].iptn += originData[i]["iptn"];
+                    datap[inday].opn += originData[i]["opn"];
+                    datap[inday].optn += originData[i]["optn"];
+                }
+            }
+        }
+
+        for(var d in DayList){
+            if(d != 'contains'){
+                if(TrendSeries[0]){
+                    if(datap[DayList[d]].tn == null){
+                        data[0].push(datap[DayList[d]].tn);
+                    }
+                    else{
+                        var r = Math.round(datap[DayList[d]].n/datap[DayList[d]].tn*1000)/10;
+                        data[0].push(r);
+                        if(r < min){min = r;}
+                        if(r > max){max = r;}
+                    }
+                }
+                if(TrendSeries[1]){
+                    if(datap[DayList[d]].tadd == null){
+                        data[1].push(datap[DayList[d]].tadd);
+                    }
+                    else{
+                        var r = Math.round(datap[DayList[d]].nadd/datap[DayList[d]].tadd*1000)/10;
+                        data[1].push(r);
+                        if(r < min){min = r;}
+                        if(r > max){max = r;}
+                    }
+                }
+                if(TrendSeries[2]){
+                    if(datap[DayList[d]].tn == null){
+                        data[2].push(datap[DayList[d]].ctn);
+                    }
+                    else{
+                        var r = Math.round(datap[DayList[d]].cn/datap[DayList[d]].ctn*1000)/10;
+                        data[2].push(r);
+                        if(r < min){min = r;}
+                        if(r > max){max = r;}
+                    }
+                }
+                if(TrendSeries[3]){
+                    if(datap[DayList[d]].tn == null){
+                        data[3].push(datap[DayList[d]].ctadd);
+                    }
+                    else{
+                        var r = Math.round(datap[DayList[d]].cnadd/datap[DayList[d]].ctadd*1000)/10;
+                        data[3].push(r);
+                        if(r < min){min = r;}
+                        if(r > max){max = r;}
+                    }
+                }
+                if(TrendSeries[4]){
+                    if(datap[DayList[d]].tn == null){
+                        data[4].push(datap[DayList[d]].iptn);
+                    }
+                    else{
+                        var r = Math.round(datap[DayList[d]].ipn/datap[DayList[d]].iptn*1000)/10;
+                        data[4].push(r);
+                        if(r < min){min = r;}
+                        if(r > max){max = r;}
+                    }
+                }
+                if(TrendSeries[5]){
+                    if(datap[DayList[d]].tn == null){
+                        data[5].push(datap[DayList[d]].optn);
+                    }
+                    else{
+                        var r = Math.round(datap[DayList[d]].opn/datap[DayList[d]].optn*1000)/10;
+                        data[5].push(r);
+                        if(r < min){min = r;}
+                        if(r > max){max = r;}
+                    }
+                }
+            }
+        }
+
+        for(var i = 0; i < 6; i++){
+            if(TrendSeries[i]){
+                datalegend.push({name:SeriesName[i], textStyle:{normal:{color:'#999'}}});
+
+                series.push({
+                    name:SeriesName[i],
+                    type:'line',
+                    data:data[i],
+                    symbol:'none',
+                    itemStyle: {
+                        normal: {
+                            color:LineColor[i],
+                            lineStyle: {   
+                                type:LineType[i],
+                                color:LineColor[i],
+                                width: 3
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        min = Math.floor(min/10)*10;
+        max = Math.ceil(max/10)*10;
+
+        var myChart = echarts.init(document.getElementById('TrendCanvas'));
+//////////////////////////////////////////////OPTION
+var option = {
+    legend: {
+        x:'right',
+        y:'20px',
+        selectedMode:false,
+        data:datalegend,
+        textStyle:{
+            fontFamily:'Microsoft YaHei',
+            fontSize:'18',
+            color:'#999',
+        }
+    },
+    tooltip : {
+        trigger: 'axis',
+        axisPointer:{type : 'none'},
+        textStyle:{fontSize:'16',color:'#fff',fontFamily:'Microsoft YaHei'},
+        formatter:function(d){
+            var l = d.length,
+                result = d[0][1];
+
+            for(var i = 0;i < d.length;i++){
+                if(d[i][2] != '-'){
+                    result += '<br/>' + d[i][0] + ':' + d[i][2] + '%';
+                }
+                else{
+                    result += '<br/>' + d[i][0] + ':' + '-';
+                }
+            }
+
+            return result;
+        }
+    },
+    calculable : true,
+    xAxis : [
+        {
+            type : 'category',
+            axisLine:{lineStyle:{color:'#999'}},
+            boundaryGap : false,
+            axisLabel:{
+                rotate:-30,
+                interval:0,
+                textStyle:{color:'#999',fontSize:'16'}
+            },
+            data : DayList
+        }
+    ],
+    yAxis : [
+        {
+            name:'百分比',
+            nameTextStyle:{
+                fontSize:'18',
+                fontFamily:'Microsoft YaHei'
+            },
+            type : 'value',
+            axisLine:{lineStyle:{color:'#999'}},
+            axisLabel:{textStyle:{color:'#999',fontSize:'16'}},
+            min:min,
+            max:max
+        }
+    ],
+    series : series
+};            
+        myChart.setOption(option);
+    }
+
+    function MapSet(v){
+        if(v == 1){
+            var b = document.getElementById('btn1'),
+                List = document.getElementById('CenterList2');
+            if(MapType){
+                MapType = false;
+                b.innerHTML= '<span class="glyphicon glyphicon-refresh"></span>分拨模式';
+                List.innerHTML = '';
+                for(var c in CenterList){
+                    if(c != 'contains'){
+                        List.options.add(new Option(CenterList[c],CenterList[c]));
+                    }
+                }
+            }
+            else{
+                MapType = true;
+                b.innerHTML= '<span class="glyphicon glyphicon-refresh"></span>省份模式';
+                List.innerHTML = '';
+                for(var c in CompanyList){
+                    if(c != 'contains'){
+                        List.options.add(new Option(CompanyList[c],CompanyList[c]));
+                    }
+                }
+            }
+        }
+        else if(v ==2){
+            var b = document.getElementById('btn2');
+            if(DataType){
+                DataType = false;
+                b.innerHTML= '<span class="glyphicon glyphicon-refresh"></span>运营时效';
+            }
+            else{
+                DataType = true;
+                b.innerHTML= '<span class="glyphicon glyphicon-refresh"></span>客户时效';
+            }
+        }
+        else{
+            var b = document.getElementById('btn3');
+            if(MapShowMode == 1){
+                MapShowMode = 2;
+                b.innerHTML= '<span class="glyphicon glyphicon-refresh"></span>显示全部路线';
+            }
+            else if(MapShowMode == 2){
+                MapShowMode = 3;
+                b.innerHTML = '<span class="glyphicon glyphicon-refresh"></span>隐藏全部路线';
+            }
+            else{
+                MapShowMode = 1;
+                b.innerHTML = '<span class="glyphicon glyphicon-refresh"></span>显示部分路线';
+            }
+        }
+        ResetMap();
+    }
+
+    function ResetMap(){
+        var b = document.getElementById('Reset');
+        b.innerHTML = '<span class="glyphicon glyphicon-repeat"></span>刷新';
+        Map();
+    }
+
+    function Rate(n,tn){
+        if((tn != null)||(tn == 0)){
+            return Math.round(n/tn*1000)/10 + '%';
+        }
+        else{
+            return '';
+        }
+    }
+
+    function Repainting(v){
+        TrendSeries[v] = Math.abs(TrendSeries[v] - 1);
+        if(Frist){
+            Trend();
+        }
+        else{
+            Frist = true;
+        }
+    }
+
+    Array.prototype.contains = function(obj) {  
+        var i = this.length;  
+        while (i--) {  
+            if (this[i] === obj) {  
+                return true;  
+            }  
+        }  
+        return false;  
+    }  
+    </script>
+
+    <style type="text/css">
+        img {max-height: 100%;}
+        dt {font-family:Microsoft YaHei;font-size:20px;}
+        dd {font-family:Microsoft YaHei;font-size:16px;text-indent:30px}
+        li {font-family:Microsoft YaHei;}
+        th {
+            color:#999;
+            font-family:Microsoft YaHei;
+            font-style:normal;
+        }
+        td{font-family:Microsoft YaHei;}
+        span {width:16px;height:16px;}
+        .modal-title{font-family:Microsoft YaHei;color:#337AB7;}
+        .panel-heading {font-family:Microsoft YaHei;}
+        .table-hover{margin-top: 15px;}
+        .btn {font-family:Microsoft YaHei;}
+        .copybtn {
+            font-family:Microsoft YaHei;
+            width:140px;
+            margin-top: 3px;
+        }
+        .Tab {font-family:Microsoft YaHei;}
+        #CenterList {
+            font-family:Microsoft YaHei;
+            font-size:18px;
+            float:right;
+            padding:2px;
+            color:#999;
+            border-color:#fff;
+            text-align:right;
+            margin-top: 12px;
+        }
+        #CenterList2 {
+            font-family:Microsoft YaHei;
+            font-size:16px;
+            float:right;
+            padding:3px;
+            color:#000;
+            border-color:#F1DEA3;
+            background-color:#F1DEA3;
+            text-align:right;
+            margin-top: 1px;
+        }
+        .mb{height: 32px;}
+        .navcustom{
+            font-family:Microsoft YaHei;
+            text-align: center;
+            color:#337AB7;
+            width: 140px;
+            margin-top: 5px;
+            margin-left: 15px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.067);
+        }
+/*//////////////////////////////////////Bootstrap Style*/
+        .navcustom li{
+            margin: 0;
+            border-top: 1px solid #ddd;
+        }
+        .navcustom li:first-child{
+            border-top: none;
+        }
+        .navcustom li a{
+            margin: 0;
+            padding: 8px 16px;
+            border-radius: 0;
+        }
+        .navcustom li.active a, ul.nav-tabs li.active a:hover{
+            color: #fff;
+            background: #0088cc;
+            border: 1px solid #0088cc;
+        }
+        .navcustom li:first-child a{
+            border-radius: 4px 4px 0 0;
+        }
+        .navcustom li:last-child a{
+            border-radius: 0 0 4px 4px;
+        }
+        .navcustom.affix{
+            top: 30px; /* Set the top position of pinned element */
+        }
+    </style>
+</head>
+
+<body>
+<ul id="myTab" class="nav nav-tabs">
+    <li class="Tab"><a id='Tab1' href="#TabCanvas" data-toggle="tab">走势图</a></li>
+    <li class="Tab"><a id="Tab3" href="#TabSummary" data-toggle="tab">汇总表</a></li>
+    <li class="Tab"><a id="Tab4" href="#TabDetail" data-toggle="tab">明细表</a></li>
+    <li class="Tab"><a id="Tab2" href="#TabMap" data-toggle="tab">地图</a></li>
+    <li class="Tab dropdown">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+            说明书<b class="caret"></b>
+        </a>
+        <ul class="dropdown-menu">
+           <li><a data-toggle="modal" href="#notice1">客户时效</a></li>
+           <li class="divider"></li>
+           <li><a data-toggle="modal" href="#notice2">运营时效</a></li>
+           <li class="divider"></li>
+           <li><a data-toggle="modal" href="#notice3">交接件离港</a></li>
+        </ul>
+    </li>
+</ul>
+
+<div id="myTabContent" class="tab-content">
+    <div class="tab-pane fade in active" id="TabCanvas">
+        <div class="btn-group" data-toggle="buttons" style="padding:5px;">
+            <label class="btn btn-primary" id='net' onclick=Repainting(0)>客户时效</label>
+            <label class="btn btn-primary" onclick=Repainting(1)>客户加一</label>
+            <label class="btn btn-primary" id='op' onclick=Repainting(2)>运营时效</label>
+            <label class="btn btn-primary" onclick=Repainting(3)>运营加一</label>
+            <label class="btn btn-primary" onclick=Repainting(4)>交件准点</label>
+            <label class="btn btn-primary" onclick=Repainting(5)>接件准点</label>
+        </div> 
+        <select id="CenterList" onchange="Trend()">
+        </select>&nbsp;
+        <div id='TrendCanvas' style="height:640px;"></div>
+    </div>
+    <div class="tab-pane fade" id="TabSummary">
+        <table id='SummaryTable' class="display" cellspacing="0" width="100%">
+        </table>
+    </div>
+    <div class="tab-pane fade" id="TabDetail">
+        <ul class="nav nav-pills nav-stacked">
+           <li class="active" style="margin-top:5px;"><a data-toggle="collapse" data-target="#collapse1">客户时效达成率</a></li>
+            <div id="collapse1" class="collapse out">
+                <div class="panel-body">
+                    <table id='Table1' class="table table-striped" cellspacing="0" width="100%">
+                    </table>
+                </div>
+            </div>
+           <li class="active" style="margin-top:5px;"><a data-toggle="collapse" data-target="#collapse2">客户时效加一达成率</a></li>
+           <div id="collapse2" class="collapse out">
+                <div class="panel-body">
+                    <table id='Table2' class="table table-striped" cellspacing="0" width="100%">
+                    </table>
+                </div>
+            </div>
+           <li class="active" style="margin-top:5px;"><a data-toggle="collapse" data-target="#collapse3">运营时效达成率</a></li>
+           <div id="collapse3" class="collapse out">
+                <div class="panel-body">
+                    <table id='Table3' class="table table-striped" cellspacing="0" width="100%">
+                    </table>
+                </div>
+            </div>
+           <li class="active" style="margin-top:5px;"><a data-toggle="collapse" data-target="#collapse4">运营时效加一达成率</a></li>
+           <div id="collapse4" class="collapse out">
+                <div class="panel-body">
+                    <table id='Table4' class="table table-striped" cellspacing="0" width="100%">
+                    </table>
+                </div>
+            </div>
+           <li class="active" style="margin-top:5px;"><a data-toggle="collapse" data-target="#collapse5">交件准点率</a></li>
+           <div id="collapse5" class="collapse out">
+                <div class="panel-body">
+                    <table id='Table5' class="table table-striped" cellspacing="0" width="100%">
+                    </table>
+                </div>
+            </div>
+           <li class="active" style="margin-top:5px;"><a data-toggle="collapse" data-target="#collapse6">接件准点率</a></li>
+           <div id="collapse6" class="collapse out">
+                <div class="panel-body">
+                    <table id='Table6' class="table table-striped" cellspacing="0" width="100%">
+                    </table>
+                </div>
+            </div>
+        </ul>
+    </div>
+    <div class="tab-pane fade" id="TabMap" style="background:#F1DEA3">
+        <button type="button" id="btn1" onclick="MapSet(1)" class="btn btn-primary mb">
+            <span class="glyphicon glyphicon-refresh"></span>分拨模式
+        </button>
+        <button type="button" id="btn2" onclick="MapSet(2)" class="btn btn-primary mb">
+            <span class="glyphicon glyphicon-refresh"></span>客户时效
+        </button>
+        <button type="button" id="btn3" onclick="MapSet(3)" class="btn btn-primary mb">
+            <span class="glyphicon glyphicon-refresh"></span>显示部分路线
+        </button>
+        <button type="button" id="Reset" onclick="ResetMap()" class="btn btn-success mb">
+            生成<span class="glyphicon glyphicon-send"></span></button>
+        <select id="CenterList2" onchange="ResetMap()"></select>
+        <div id="AgingMap" style="height:640px;"></div>
+    </div>
+    <div class="modal fade" id="notice1" tabindex="-1" role="dialog" 
+       aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" 
+                    data-dismiss="modal" aria-hidden="true">
+                        &times;
+                    </button>
+                    <h4 class="modal-title" id="myModalLabel">
+                    客户时效说明
+                    </h4>
+                </div>
+                <div class="modal-body">
+                <dl>
+                    <dt>取值逻辑</dt>
+                    <dd>1 获取查询日期及之前一段时间的所有单号</dd>
+                    <dd>2 根据单号提供的发件站点和签收站点信息，查询规定时效表确定该单应签收的时间</dd>
+                    <dd>3 筛选应到达时间落在查询时间之内的单号</dd>
+                    <dd>4 查找该单号的签收时间，与应签收时间对比，若超出范围，这认为时效未达成</dd>
+                    <dt>时间节点</dt>
+                    <dd>- 查询起始日期8:00至查询结束日期次日8:00</dd>
+                    <dt>注意事项</dt>
+                    <dd>- 汇总表、明细表中的数据以出发分拨或分公司为归集主体</dd>
+                    <dd>- 数据实时更新，查询当日或前一日数据由于部分数据不全会偏高</dd>
+                </dl>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" 
+                    data-dismiss="modal">     
+                    我知道了
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="notice2" tabindex="-2" role="dialog" 
+       aria-labelledby="myModalLabel2" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" 
+                    data-dismiss="modal" aria-hidden="true">
+                        &times;
+                    </button>
+                    <h4 class="modal-title" id="myModalLabel2">
+                    运营时效说明
+                    </h4>
+                </div>
+                <div class="modal-body">
+                <dl>
+                    <dt>取值逻辑</dt>
+                    <dd>1 获取查询日期及之前一段时间的所有单号</dd>
+                    <dd>2 根据单号提供的发件站点和签收站点信息，查询规定时效表确定该单在目的分拨的应达到时间</dd>
+                    <dd>3 筛选应到达时间落在查询时间之内的单号</dd>
+                    <dd>4 查找该单号在目的分拨扫描时间，与应到达时间对比，若超出范围，这认为时效未达成</dd>
+                    <dt>时间节点</dt>
+                    <dd>- 查询起始日期8:00至查询结束日期次日8:00</dd>
+                    <dt>注意事项</dt>
+                    <dd>- 汇总表、明细表中的数据以出发分拨或分公司为归集主体</dd>
+                    <dd>- 带有方向性的运营时效数据请参见运营时效树状矢量表</dd>
+                    <dd>- 具体各单号运营时效详细数据请参见运营时效明细表</dd>
+                    <dd>- 数据实时更新，查询当日或前一日数据由于部分数据不全会偏高</dd>
+                </dl>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" 
+                    data-dismiss="modal">     
+                    我知道了
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="notice3" tabindex="-3" role="dialog" 
+       aria-labelledby="myModalLabel3" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" 
+                    data-dismiss="modal" aria-hidden="true">
+                        &times;
+                    </button>
+                    <h4 class="modal-title" id="myModalLabel3">
+                    交接件准点率说明
+                    </h4>
+                </div>
+                <div class="modal-body">
+                <dl>
+                    <dt>取值逻辑</dt>
+                    <dd>1 获取查询日期及之前一段时间的分拨的班车扫描记录</dd>
+                    <dd>2 根据单号提供的交/接站点和分拨信息，查询站点交接件时效表确定该班车应交/接件时间</dd>
+                    <dd>3 筛选应交/接件时间落在查询时间之内的所有班车记录</dd>
+                    <dd>4 查找该班车的打卡时间，与应交/接件时间对比，若超出范围，这认为该次交/接件未达成</dd>
+                    <dt>时间节点</dt>
+                    <dd>- 查询起始日期14:30至查询结束日期次日14:30</dd>
+                    <dt>注意事项</dt>
+                    <dd>- 汇总表、明细表中的数据以班车打卡所在分拨为归集主体</dd>
+                    <dd>- 数据实时更新，查询当日或前一日数据由于部分数据不全会偏高</dd>
+                </dl>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" 
+                    data-dismiss="modal">     
+                    我知道了
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

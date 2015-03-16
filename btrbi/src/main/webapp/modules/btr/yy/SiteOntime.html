@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>班车考勤汇总</title>
+
+    <link href="../../tools/bootstrap/css/bootstrap.css" rel="stylesheet">
+    <script src="../../tools/jquery/jquery-2.1.3.min.js"></script>
+    <script src="../../tools/bootstrap/js/bootstrap.min.js"></script>
+    <script src="../../tools/jquery/ZeroClipboard.js"></script>
+
+    <script src="../../framework/core.js"></script>
+    <script src="../../framework/ajax.js"></script>
+    <script src="../../dm/common.js"></script>
+    
+    <script src="../../tools/echarts-2.0.4/echarts-plain.js"></script>
+
+    <script type="text/javascript">
+    var globalValiable = window.parent.globalValiable;
+
+    Array.prototype.contains = function(obj) {  
+        var i = this.length;  
+        while (i--) {  
+            if (this[i] === obj) {  
+                return true;  
+            }  
+        }  
+        return false;  
+    }  
+
+    window.onload = function() {
+        var canvas = document.getElementById('TrendCanvas');
+        
+        canvas.style.height = (screen.height - 265) + 'px';
+
+        if(globalValiable && globalValiable.data) {
+            var originData = globalValiable.data,
+                queryParams = globalValiable.queryParams,
+                CenterList = [],CompanyList = [],
+                List = document.getElementById("CenterSelect");
+
+            if(queryParams.param3 == undefined){     
+                List.options.add(new Option('全网','全网'));
+            }
+
+            for(var i = 0; i < originData.length; i++){
+                var c = originData[i]["org_name"],
+                    n = originData[i]["center"];
+
+                if(!CompanyList.contains(c)){
+                    CompanyList.push(c);
+                    List.options.add(new Option(c,c));
+                }
+
+                if(!CenterList.contains(n)){
+                    CenterList.push(n);
+                    List.options.add(new Option(n,n));
+                }
+            }
+
+            Painting();
+            Table();
+            $("#Tab1").click();
+            return;
+        }
+    } 
+
+    function Painting(){
+        var originData = globalValiable.data,
+            daylist = [],
+            data = [],
+            data2 = [],
+            dataT = [],
+            minr = 100,
+            Selected = document.getElementById("CenterSelect").value;
+
+        for(var i = 0; i < originData.length; i++){
+            var inday = originData[i]["inday"],
+                type = originData[i]["type"],
+                ontimes = originData[i]["ontimes"],
+                times = originData[i]["times"],
+                org = originData[i]["org_name"],
+                cen = originData[i]["center"];
+
+            if(!daylist.contains(inday)){
+                daylist.push(inday);
+            }
+
+            if((Selected == '全网')||(Selected == org)||(Selected == cen)){
+                if(dataT[inday] == null){
+                    dataT[inday] = {};
+                    dataT[inday].n = 0;
+                    dataT[inday].tn = 0;
+                    dataT[inday].n2 = 0;
+                    dataT[inday].tn2 = 0;
+                }
+
+                if(type == '交件到港'){
+                    dataT[inday].n += ontimes;
+                    dataT[inday].tn += times;
+                }
+                else{
+                    dataT[inday].n2 += ontimes;
+                    dataT[inday].tn2 += times;
+                }
+            }
+        }
+
+        for(var d in daylist){
+            if(d != 'contains'){
+                if(dataT[daylist[d]] != undefined){
+                    if(dataT[daylist[d]].tn != 0){
+                        var temp = Math.round(1000*dataT[daylist[d]].n/dataT[daylist[d]].tn)/10;
+                        data.push(temp);
+                    }
+
+                    if(dataT[daylist[d]].tn2 != 0){
+                        var temp2 = Math.round(1000*dataT[daylist[d]].n2/dataT[daylist[d]].tn2)/10;
+                        data2.push(temp2);
+                    }
+                    
+                    if(minr > temp){
+                        minr = temp;
+                    }
+                    if(minr > temp2){
+                        minr = temp2;
+                    }
+                }
+            }
+        }
+
+        minr = Math.floor(minr/10)*10;
+        if(minr > 90){
+            minr = 90;
+        }
+        var myChart = echarts.init(document.getElementById('TrendCanvas'));
+
+////////////////////////////////////Option
+var option = {
+    tooltip : {
+        trigger: 'axis',
+        axisPointer:{type : 'none'},
+        textStyle:{fontSize:'16',color:'#fff',fontFamily:'Microsoft YaHei'},
+        formatter:function(d){
+            var l = d.length,
+                result = d[0][1];
+
+            for(var i = 0;i < d.length;i++){
+                if(!isNaN(d[i][2])){
+                    result += '<br/>' + d[i][0] + ':' + d[i][2] + '%';
+                }
+                else{
+                    result += '<br/>' + d[i][0] + ':' + '-';
+                }
+            }
+
+            return result;
+        }
+    },
+    calculable : true,
+    xAxis : [
+        {
+            type : 'category',
+            axisLine:{lineStyle:{color:'#999'}},
+            boundaryGap : false,
+            axisLabel:{
+                rotate:-30,
+                interval:0,
+                textStyle:{color:'#999',fontSize:'16'}
+            },
+            data : daylist
+        }
+    ],
+    yAxis : [
+        {
+            name:'百分比',
+            nameTextStyle:{
+                fontSize:'16',
+                fontFamily:'Microsoft YaHei'
+            },
+            splitNumber:(100-minr)/5,
+            type : 'value',
+            axisLine:{lineStyle:{color:'#999'}},
+            axisLabel:{textStyle:{color:'#999',fontSize:'16'}},
+            min:minr,
+            max:100
+        }
+    ],
+    series : [
+        {
+            name:'交件到港',
+            type:'line',
+            data:data,
+            symbol: 'none',
+            smooth:true,
+            itemStyle: {
+              normal: {
+                 lineStyle: {        // 系列级个性化折线样式
+                    width: 3,
+                    color:'#008972'
+                 }
+             }
+           }         
+        },
+        {
+            name:'取件离港',
+            type:'line',
+            data:data2,
+            symbol: 'none',
+            smooth:true,
+            itemStyle: {
+              normal: {
+                 lineStyle: {        // 系列级个性化折线样式
+                    width: 3,
+                    color:'#337AB7'
+                 }
+             }
+           }         
+        }
+    ]
+};            
+        myChart.setOption(option);
+
+    }
+
+    function Table(){
+      var originData = globalValiable.data,
+         data = {},
+         data2 = {},
+         datasorted = {},
+         CenterList = [],
+         CompanyList = []
+         n = 0,tn = 0,n2 = 0,tn2 = 0;
+    
+      data = [];
+      data2 = [];
+      for(var i = 0; i < originData.length; i++){
+        var company = originData[i]["org_name"],
+          center = originData[i]["center"],
+          type = originData[i]["type"];
+
+        if(!CompanyList.contains(company)){
+          CompanyList.push(company);
+          data2[company] = {};
+          data2[company].company = company;
+          data2[company].n = 0;
+          data2[company].n2 = 0;
+          data2[company].tn = 0;
+          data2[company].tn2 = 0;
+          data2.length++;
+        }
+
+        if(!CenterList.contains(center)){
+          CenterList.push(center);   
+          data[center] = {};
+          data[center].center = center;
+          data[center].company = company;
+          data[center].tn = 0;
+          data[center].tn2 = 0;
+          data[center].n = 0;
+          data[center].n2 = 0;
+          data.length++;
+        }
+        
+        if(type == '交件到港'){
+            data[center].n += originData[i]["ontimes"];
+            data[center].tn += originData[i]["times"];
+            data2[company].n += originData[i]["ontimes"];
+            data2[company].tn += originData[i]["times"];
+            n += originData[i]["ontimes"];
+            tn += originData[i]["times"];
+        }
+        else{
+            data[center].n2 += originData[i]["ontimes"];
+            data[center].tn2 += originData[i]["times"];
+            data2[company].n2 += originData[i]["ontimes"];
+            data2[company].tn2 += originData[i]["times"];
+            n2 += originData[i]["ontimes"];
+            tn2 += originData[i]["times"];
+        }
+    }
+      
+/////////////////////////////////制表
+    var table = document.getElementById("tablesummary"),
+        deal = [];
+
+    var h = table.createTHead().insertRow();
+    var td = h.insertCell(0);  
+    td.innerText = '名称';
+    td.style.color = '#999';
+    td.style.fontFamily = 'Microsoft YaHei';
+    var td = h.insertCell(1);  
+    td.innerText = '及时交件';
+    td.style.color = '#999';
+    td.style.fontFamily = 'Microsoft YaHei';
+    var td = h.insertCell(2);  
+    td.innerText = '交件次数';
+    td.style.color = '#999';
+    td.style.fontFamily = 'Microsoft YaHei';
+    var td = h.insertCell(3);  
+    td.innerText = '交件及时率';
+    td.style.color = '#999';
+    td.style.fontFamily = 'Microsoft YaHei';
+    var td = h.insertCell(4);  
+    td.innerText = '及时接件';
+    td.style.color = '#999';
+    td.style.fontFamily = 'Microsoft YaHei';
+    var td = h.insertCell(5);  
+    td.innerText = '接件次数';
+    td.style.color = '#999';
+    td.style.fontFamily = 'Microsoft YaHei';
+    var td = h.insertCell(6);  
+    td.innerText = '接件及时率';
+    td.style.color = '#999';
+    td.style.fontFamily = 'Microsoft YaHei';
+
+    var tr = table.insertRow();
+    var td = tr.insertCell(0);  
+    td.innerText = '全网';
+    td.style.color = '#337AB7';
+    td.id = '全网';
+    var td = tr.insertCell(1);  
+    td.innerText = n;
+    td.style.color = '#337AB7';
+    var td = tr.insertCell(2);  
+    td.innerText = tn;
+    td.style.color = '#337AB7';
+    var td = tr.insertCell(3);  
+    td.innerText = Math.round(n/tn*1000)/10+'%';
+    td.style.color = '#337AB7';
+    var td = tr.insertCell(4);  
+    td.innerText = n2;
+    td.style.color = '#337AB7';
+    var td = tr.insertCell(5);  
+    td.innerText = tn2
+    td.style.color = '#337AB7';
+    var td = tr.insertCell(6);  
+    td.innerText = Math.round(n2/tn2*1000)/10+'%';
+    td.style.color = '#337AB7';
+
+    for(var k = 0; k < CompanyList.length; k++){
+        var c = CompanyList[k];
+        if(!deal.contains(c)){
+          deal.push(c);
+
+          var tr = table.insertRow();
+          var td = tr.insertCell(0);  
+          td.innerText = data2[c].company;
+          td.style.color = '#337AB7';
+          td.id = c;
+          var td = tr.insertCell(1);  
+          td.innerText = data2[c].n;
+          td.style.color = '#337AB7';
+          var td = tr.insertCell(2);  
+          td.innerText = data2[c].tn;
+          td.style.color = '#337AB7';
+          var td = tr.insertCell(3);  
+          td.innerText = Math.round(data2[c].n/data2[c].tn*1000)/10+'%';
+          td.style.color = '#337AB7';
+          var td = tr.insertCell(4);  
+          td.innerText = data2[c].n2;
+          td.style.color = '#337AB7';
+          var td = tr.insertCell(5);  
+          td.innerText = data2[c].tn2
+          td.style.color = '#337AB7';
+          var td = tr.insertCell(6);  
+          td.innerText = Math.round(data2[c].n2/data2[c].tn2*1000)/10+'%';
+          td.style.color = '#337AB7';
+
+          for(var i = 0; i < CenterList.length; i++){
+            var d = CenterList[i];
+            if(data[d].company == c){
+              var tr = table.insertRow();
+              var td = tr.insertCell(0);  
+              td.innerText = data[d].center;
+              var td = tr.insertCell(1);  
+              td.innerText = data[d].n;
+              var td = tr.insertCell(2);  
+              td.innerText = data[d].tn;
+              var td = tr.insertCell(3);  
+              td.innerText = Math.round(data[d].n/data[d].tn*1000)/10+'%';
+              var td = tr.insertCell(4);  
+              td.innerText = data[d].n2;
+              var td = tr.insertCell(5);  
+              td.innerText = data[d].tn2;
+              var td = tr.insertCell(6);  
+              td.innerText =  Math.round(data[d].n2/data[d].tn2*1000)/10+'%';
+            }
+          }
+/////////////////////////////////添加导航栏
+          var nav = document.getElementById("nav");
+          nav.innerHTML = nav.innerHTML + '<li class="active"><a href="#'
+          + c + '">' + c + '</a></li>';
+        }
+      }
+      var nav = document.getElementById("nav");
+        nav.innerHTML = nav.innerHTML + '<li class="active"><a href="#Table">回到顶部↑</a></li>';
+    }
+
+    function MyScreen(TableId,ButtonId) {
+        var clip = new ZeroClipboard.Client(); 
+          txt = document.getElementById(TableId).innerText;
+
+        clip.glue(ButtonId); 
+        clip.setHandCursor(true); 
+        clip.setText(txt); 
+    }
+    </script>
+
+    <style type="text/css">
+      dt {font-family:Microsoft YaHei;font-size:20px;}
+      dd {font-family:Microsoft YaHei;font-size:16px;text-indent:30px}
+      th {
+        color:#999;
+        font-family:Microsoft YaHei;
+        font-style:normal;
+      }
+      td{
+        font-family:Microsoft YaHei;
+      }
+      .Tab {font-family:Microsoft YaHei;}
+      #CenterSelect {
+       font-family:Microsoft YaHei;
+       font-size:18px;
+       float:right;
+       padding:8px;
+       color:#999;
+       border-color:#fff;
+       text-align:right;
+      }
+      #CBtn{
+        width: 140px;
+        margin-left: 15px;
+        margin-top: 20px;
+      }
+/* Custom Styles */
+    .navcustom{
+        font-family:Microsoft YaHei;
+        text-align: center;
+        color:#337AB7;
+        width: 140px;
+        margin-top: 5px;
+        margin-left: 15px;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.067);
+    }
+    .navcustom li{
+        margin: 0;
+        border-top: 1px solid #ddd;
+    }
+    .navcustom li:first-child{
+        border-top: none;
+    }
+    .navcustom li a{
+        margin: 0;
+        padding: 8px 16px;
+        border-radius: 0;
+    }
+    .navcustom li.active a, ul.nav-tabs li.active a:hover{
+        color: #fff;
+        background: #0088cc;
+        border: 1px solid #0088cc;
+    }
+    .navcustom li:first-child a{
+        border-radius: 4px 4px 0 0;
+    }
+    .navcustom li:last-child a{
+        border-radius: 0 0 4px 4px;
+    }
+    .navcustom.affix{
+        top: 30px; /* Set the top position of pinned element */
+    }
+    </style>
+</head>
+
+<body>
+    <ul id="myTab" class="nav nav-tabs">
+       <li class="Tab"><a  id='Tab1' href="#Trend" data-toggle="tab">走势图</a></li>
+       <li class="Tab"><a href="#Table" data-toggle="tab">汇总表</a></li>
+       <li class="Tab"><a href="#Notice" data-toggle="tab">说明书</a></li>
+    </ul>
+    
+    <div id="myTabContent" class="tab-content">
+        <div class="tab-pane fade in active" id="Trend">
+            <select id="CenterSelect" onchange="Painting()"></select>&nbsp;
+            <div id='TrendCanvas' style="height:640px;"></div>
+        </div>
+
+        <div class="tab-pane fade" id="Table">
+            <div class="col-xs-2">
+                <button type="button" onclick="MyScreen('tablesummary','CBtn')" id="CBtn" class="btn btn-success">双击复制</button>
+                <ul id='nav' class="navcustom nav nav-tabs nav-stacked" data-spy="affix" data-offset-top="80">
+                </ul>
+            </div>
+            <div class="col-xs-9">
+                <table id='tablesummary' class="table table-hover">
+                   <tbody>
+                   </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="Notice">
+            <dl>
+            <dt>取值逻辑</dt>
+            <dd>- 根据当日站点发件扫描、分拨的发件扫描，对比班车考勤，查出交件漏扫、接件漏扫班车。打卡的班车则根据打卡时间、打卡类型，对比规定打卡时间，判断考勤是否延误、计算延误时间和理论处罚金额</dd>
+            <dt>时间节点</dt>
+            <dd>- 当日14:30至次日14:30</dd>
+            <dd>- 按考勤时间计算</dd>
+            <dt>注意点</dt>
+            <dd>- 由于系统规定考勤时间不带日期格式，和打卡时间对比时会出现如下情况：规定时间是凌晨，打卡时间是前一日晚上，导致打卡时间大于规定时间。故做如下修正：规定时间在0:00到7:59间，打卡时间在18:00~23:59间，认为准时打卡；打卡时间在0:00点到7:59点间，规定时间在18:00~23:59间，认为延误。</dd>
+            <dd>- 规定时间在18:00~23:59间，打卡时间在当日0:00点到7:59点间，在提早10个小时打卡的情况下，可能会误判为延误。但是此种情况罕见，几乎没有大的影响</dd>
+            <dd>- 数据结果中不包含直客窗口、派送窗口以及各种项目等站点数据</dd>
+            </dl>
+        </div>
+    </div>
+</body>
+</html>

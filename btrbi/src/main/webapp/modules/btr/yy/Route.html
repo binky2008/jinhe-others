@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>时效总览</title>
+
+    <link rel="stylesheet" type="text/css" href="../../dm/common.css">
+    <link href="../../tools/bootstrap/css/buttons.css" rel="stylesheet">
+    <link href="../../tools/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../../tools/bootstrap/datatable/jquery.dataTables.min.css" rel="stylesheet">
+
+    <script src="../../tools/jquery/jquery-2.1.3.min.js"></script>
+    <script src="../../tools/bootstrap/js/bootstrap.min.js"></script>
+    <script src="../../tools/bootstrap/datatable/jquery.dataTables.min.js"></script>
+    <script src="../../tools/jquery/ZeroClipboard.js"></script>
+    <script src="../../tools/echarts-2.0.4/echarts-plain-map.js"></script>
+
+    <script src="../../framework/core.js"></script>
+    <script src="../../framework/ajax.js"></script>
+    <script src="../../dm/common.js"></script>
+
+    <script type="text/javascript">
+    var globalValiable = window.parent.globalValiable,
+        CenterList = [],
+        MapColor = true,MapType = true,MapAnimation = true;
+
+    window.onload = function() {
+        var originData = globalValiable.data,
+            List = document.getElementById("CenterList"),
+            MyMap = document.getElementById('Map');
+        MyMap.style.height = (screen.height - 235) + 'px';
+
+        for(var i = 0; i < originData.length; i++){
+            var center = originData[i]["begin_pos"];
+
+            if(!CenterList.contains(center)){
+                CenterList.push(center);
+                List.options.add(new Option(center,center));
+            }
+        }
+
+        Map(); 
+    } 
+
+    function Map(){
+        var originData = globalValiable.data,
+            selected = document.getElementById('CenterList').value.replace('分拨',''),
+            datar = [[],[],[],[],[],[],[],[],[],[]],
+            datapoint = [],MaxLevel = 0,count = 0,cList = [],
+            ColorList;
+
+        if(MapColor){
+            ColorList = ['#00FF12','#FFEF51','#FF259F','#ECC9FF','#FFFCA6',
+                        '#8FA1FF','#0DFFAF','#E88A7D','#FF7C25','#898F9B'];
+        }
+        else{
+            ColorList = ['#00FF12','#00FF12','#00FF12','#00FF12','#00FF12',
+                        '#00FF12','#00FF12','#00FF12','#00FF12','#00FF12'];
+        }
+
+        datapoint.push({name: selected,value:selected});
+        cList.push(selected);
+        for(var i = 0; i < originData.length; i++){
+            var center = originData[i]["begin_pos"],
+                route = originData[i]["result_name"];
+
+            if(MapType){
+                v = route.substr(0,route.indexOf('['));
+            } 
+            else{
+                var tempstr = '';
+                for(var j=route.length;j>=1;j--){
+                    tempstr += route.substring(j-1,j);
+                }
+                v = tempstr.substr(tempstr.indexOf('[') + 1,
+                    tempstr.indexOf('>') - tempstr.indexOf('[') - 1);
+                tempstr = '';
+                for(var j=v.length;j>=1;j--){
+                    tempstr += v.substring(j-1,j);
+                }
+                v = tempstr;
+            }
+
+            if(v == selected){
+                var str = route,level = 0;
+
+                while(str.indexOf('>')>= 0){
+                    var dist1 = str.substr(0,str.indexOf('['));
+
+                    str = str.substr(str.indexOf('>') + 1,str.length - str.indexOf('>') - 1);
+                    var dist2 = str.substr(0,str.indexOf('['));
+
+                    if(str.indexOf(',')>= 0){
+                        var time =dist2 + ':' + str
+                        .substr(str.indexOf('[') + 1,str.indexOf(',') - str.indexOf('[') - 1);
+                    }
+                    else{
+                        var time =  dist2 + ':' + str
+                        .substr(str.indexOf('[') + 1,str.indexOf(']') - str.indexOf('[') - 1);
+                    }
+
+                    if(!cList.contains(dist1)){
+                        datapoint.push({name: dist1,value:dist1});
+                        cList.push(dist1);
+                    }
+                    if(!cList.contains(dist2)){
+                        datapoint.push({name: dist2,value:dist2});
+                        cList.push(dist2);
+                    }
+
+                    datar[level++].push([{name:dist1},{name: dist2,value: time}]);
+                }
+
+                if(level > MaxLevel){
+                    MaxLevel = level;
+                }   
+            }
+        }
+
+        var series = [{
+            name: '全国',
+            type: 'map',
+            roam: true,
+            hoverable: false,
+            mapType: 'china',
+            itemStyle:{
+                normal:{
+                    borderColor:'rgba(0,138,186,0.9)',
+                    borderWidth:1,
+                    areaStyle:{
+                        color: '#262126'
+                    }
+                }
+            },
+            data:[],
+            markLine : {
+                smooth:true,
+                symbol: ['none', 'circle'],  
+                symbolSize : 1,
+                itemStyle : {
+                    normal: {
+                        color:'#fff',
+                        borderWidth:1,
+                        borderColor:'rgba(30,144,255,0.5)'
+                    }
+                },
+                data : [],
+            },
+            geoCoord: {
+                '浙江':[120.1801,30.2563],
+                '江苏':[118.8477,31.9564],
+                '安徽':[117.29,32.0581],
+                '河北':[114.4995,38.1006],
+                '广东':[113.5107,23.2196],
+                '山东':[117.1582,36.8701],
+                '福建':[119.4543,25.9222],
+                '湖北':[114.154,30.6186],
+                '河南':[113.4668,34.6234],
+                '四川':[104.063635,30.668507],
+                '重庆':[106.556469,29.599061],
+                '陕西':[108.964215,34.298895],
+
+
+
+
+                '成都': [104.063635,30.668507],
+                '南充': [106.07354,30.80558],
+                '绵阳': [104.679945,31.486005],
+                '自贡': [104.790328,29.373703],
+                '重庆': [106.556469,29.599061],
+                '重庆万州': [108.3847,30.815505],
+                '重庆巴南': [106.533472,29.395859],
+                '西安': [108.964215,34.298895],
+
+                '龙岗':[113.827742,22.911249],
+                '阜阳':[115.823,32.894],
+                '莆田':[119.023,25.444],
+                '佛山':[113.1207,22.9925],
+                '上海': [121.335,31.1342],
+                '金山': [121.3296,30.9478],
+                '上海市区': [121.5491,31.2269],
+                '浦东': [121.8119,31.455],
+                '合肥': [117.29,32.0581],
+                '芜湖': [118.4404,31.3383],
+                '蚌埠': [117.3975,32.9039],
+                '萧山': [120.291937,30.248203],
+                '杭州': [120.361556,30.337326],
+                '嘉兴': [120.7711,30.7402],
+                '金华': [119.635,29.1137],
+                '台州': [121.4334,28.6461],
+                '温州': [120.7136,27.9724],
+                '宁波': [121.5622,29.8782],
+                '衢州': [118.9037,28.9419],
+                '丽水': [119.9547,28.4187],
+                '苏州': [120.6083,31.2811],
+                '南京': [118.8477,31.9564],
+                '盐城': [120.1794,33.35],
+                '泰州': [119.9345,32.4761],
+                '南通': [120.8934,31.9913],
+                '淮安': [119.079,33.5977],
+                '徐州': [117.2013,34.2313],
+                '扬州': [119.4401,32.3844],
+                '常州': [119.9667,31.7892],
+                '宿迁': [118.2856,33.9108],
+                '南京市区': [118.9188,32.103],
+                '北京北': [116.6602,40.1299],
+                '北京': [116.4713,39.9452],
+                '唐山': [118.4766,39.6826],
+                '保定': [115.0488,39.0948],
+                '邯郸': [114.5022,36.586],
+                '石家庄': [114.4995,38.1006],
+                '天津': [117.4219,39.4189],
+                '漳州': [117.6763,24.5078],
+                '福州': [119.4543,25.9222],
+                '厦门': [118.1689,24.6478],
+                '泉州': [118.3228,25.1147],
+                '郑州': [113.4668,34.6234],
+                '洛阳': [112.4445,34.6533],
+                '新乡': [113.9347,35.2668],
+                '武昌': [114.3616,30.5419],
+                '武汉': [114.154,30.6186],
+                '临沂': [118.3118,35.2936],
+                '济南': [117.1582,36.8701],
+                '潍坊': [119.0918,36.524],
+                '烟台': [120.7397,37.5128],
+                '济宁': [116.8286,35.3375],
+                '青岛': [120.4651,36.3373],
+                '菏泽': [115.6201,35.2057],
+                '中山': [113.4229,22.478],
+                '汕头': [117.1692,23.3405],
+                '海口': [110.3893,19.8516],
+                '江门': [112.6318,22.1484],
+                '惠州': [114.6204,23.1647],
+                '广州': [113.5107,23.2196],
+                '深圳': [114.2566,22.7069],
+                '深圳清水河': [114.1359,22.5499],
+                '番禺': [113.4018,22.9292],
+                '新塘': [113.8341,23.2717],
+                '大朗': [113.9491,22.9478],
+                '珠海': [113.5656,22.2493],
+                '虎门': [113.6856,22.8184]               
+            }
+        }];
+        for(var i = 0;i < MaxLevel;i++){
+            series.push({
+                name: 'Level:' + (i + 1),
+                type: 'map',
+                mapType: 'china',
+                data:[],
+                markLine : {
+                    smooth:true,
+                    effect : {
+                        show: MapAnimation,
+                        scaleSize: 1,
+                        period: 30,
+                        color: '#fff',
+                        shadowBlur: 10
+                    },
+                    itemStyle : {
+                        normal: {
+                            borderWidth:1,
+                            color:ColorList[i],
+                            lineStyle: {
+                                type: 'solid',
+                                shadowBlur: 10
+                            }
+                        },
+                        emphasis:{
+                            color:ColorList[i]
+                        }
+                    },
+                    data : datar[i]
+                },
+                markPoint : {
+                    symbol:'emptyCircle',
+                    symbolSize :3,
+                    effect : {
+                        show:true,
+                        shadowBlur : 0
+                    },
+                    itemStyle:{
+                    normal:{
+                        color:'#fff8dc',
+                        label:{
+                            show:false
+                        }
+                    },
+                    emphasis:{
+                        color:'#FFFA40',
+                        label:{
+                            show:false
+                        }
+                    }
+                },
+                    data : datapoint
+                }
+            });
+        }
+
+        var myChart = echarts.init(document.getElementById('Map'));
+
+var option = {
+    backgroundColor: '#262126',
+    tooltip : {
+        textStyle:{color:'#E8C446',fontSize:'18',fontFamily:'Microsoft YaHei'},
+        trigger: 'item',
+        formatter: function (v) {
+            if(v[1].indexOf('>') >= 0){
+                return v[1] + ': ' + v[3].substr(v[3].indexOf(':') + 1);
+            }
+            else{
+                return v[1];
+            }
+        }
+    },
+    series : series
+};         
+        myChart.setOption(option);
+    }
+
+    function MapSet(v){
+        if(v == 1){
+            var b = document.getElementById('btn1');
+            if(MapType){
+                MapType = false;
+                b.innerHTML= '<span class="glyphicon glyphicon-refresh"></span>入港路由图';
+            }
+            else{
+                MapType = true;
+                b.innerHTML= '<span class="glyphicon glyphicon-refresh"></span>出港路由图';
+            }
+        }
+        else if(v ==2){
+            var b = document.getElementById('btn2');
+            if(MapColor){
+                MapColor = false;
+                b.innerHTML= '<span class="glyphicon glyphicon-refresh"></span>单色调';
+            }
+            else{
+                MapColor = true;
+                b.innerHTML= '<span class="glyphicon glyphicon-refresh"></span>多色调';
+            }
+        }
+        else{
+            var b = document.getElementById('btn3');
+            if(MapAnimation){
+                MapAnimation = false;
+                b.innerHTML= '<span class="glyphicon glyphicon-refresh"></span>动画关闭';
+            }
+            else{
+                MapAnimation = true;
+                b.innerHTML= '<span class="glyphicon glyphicon-refresh"></span>动画开启';
+            }
+        }
+        ResetMap();
+    }
+
+    function ResetMap(){
+        //var b = document.getElementById('Reset');
+        //b.innerHTML = '<span class="glyphicon glyphicon-repeat"></span>刷新';
+        Map();
+    }
+
+    function Rate(n,tn){
+        if((tn != null)||(tn == 0)){
+            return Math.round(n/tn*1000)/10 + '%';
+        }
+        else{
+            return '';
+        }
+    }
+
+    Array.prototype.contains = function(obj) {  
+        var i = this.length;  
+        while (i--) {  
+            if (this[i] === obj) {  
+                return true;  
+            }  
+        }  
+        return false;  
+    }  
+    </script>
+
+    <style type="text/css">
+        img {max-height: 100%;}
+        dt {font-family:Microsoft YaHei;font-size:20px;}
+        dd {font-family:Microsoft YaHei;font-size:16px;text-indent:30px}
+        li {font-family:Microsoft YaHei;}
+        th {
+            color:#999;
+            font-family:Microsoft YaHei;
+            font-style:normal;
+        }
+        td{font-family:Microsoft YaHei;}
+        span {width:16px;height:16px;}
+        .modal-title{font-family:Microsoft YaHei;color:#337AB7;}
+        .panel-heading {font-family:Microsoft YaHei;}
+        .table-hover{margin-top: 15px;}
+        .btn {font-family:Microsoft YaHei;}
+        .copybtn {
+            font-family:Microsoft YaHei;
+            width:140px;
+            margin-top: 3px;
+        }
+        .Tab {font-family:Microsoft YaHei;}
+        .navcustom{
+            font-family:Microsoft YaHei;
+            text-align: center;
+            color:#337AB7;
+            width: 140px;
+            margin-top: 5px;
+            margin-left: 15px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.067);
+        }
+        #CenterList {
+            font-family:Microsoft YaHei;
+            font-size:16px;
+            float:right;
+            padding:3px;
+            color:#fff8dc;
+            display:inline-block;
+            border-color:#999;
+            background-color:#262126;
+            text-align:right;
+            margin-top: 1px;
+        }
+        #CenterList option:hover { 
+            background-color: #f80; 
+            color: #fff; 
+        }
+/*//////////////////////////////////////Bootstrap Style*/
+        .navcustom li{
+            margin: 0;
+            border-top: 1px solid #ddd;
+        }
+        .navcustom li:first-child{
+            border-top: none;
+        }
+        .navcustom li a{
+            margin: 0;
+            padding: 8px 16px;
+            border-radius: 0;
+        }
+        .navcustom li.active a, ul.nav-tabs li.active a:hover{
+            color: #fff;
+            background: #0088cc;
+            border: 1px solid #0088cc;
+        }
+        .navcustom li:first-child a{
+            border-radius: 4px 4px 0 0;
+        }
+        .navcustom li:last-child a{
+            border-radius: 0 0 4px 4px;
+        }
+        .navcustom.affix{
+            top: 30px; /* Set the top position of pinned element */
+        }
+    </style>
+</head>
+
+<body>
+<div id="TabMap" style="background:#262126">
+    <button type="button" id="btn1" onclick="MapSet(1)" class="btn btn-success mb">
+        <span class="glyphicon glyphicon-refresh"></span>出港路由图
+    </button>
+    <button type="button" id="btn2" onclick="MapSet(2)" class="btn btn-success mb">
+        <span class="glyphicon glyphicon-refresh"></span>多色调
+    </button>
+    <button type="button" id="btn3" onclick="MapSet(3)" class="btn btn-success mb">
+        <span class="glyphicon glyphicon-refresh"></span>动画开启
+    </button>
+    <select id="CenterList" onchange="ResetMap()"></select>
+    <div id="Map" style="height:640px;"></div>
+</div>
+</body>
+</html>

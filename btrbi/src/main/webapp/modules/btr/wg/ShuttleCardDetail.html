@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>班车考勤明细</title>
+
+    <link rel="stylesheet" type="text/css" href="../../tools/easyui/themes/default/easyui.css">
+    <link rel="stylesheet" type="text/css" href="../../tools/easyui/themes/icon.css">
+    <link rel="stylesheet" type="text/css" href="../../dm/common.css">
+
+    <script src="../../tools/easyui/jquery.min.js"></script>
+    <script src="../../tools/easyui/jquery.easyui.min.js"></script>
+
+    <script src="../../framework/core.js"></script>
+    <script src="../../framework/ajax.js"></script>
+    <script src="../../dm/common.js"></script>
+
+    <script type="text/javascript">
+    var globalValiable = window.parent.globalValiable,
+        sitelist = [],
+        centerlist = [],
+        tabH;
+        
+    Array.prototype.contains = function(obj) {  
+        var i = this.length;  
+        while (i--) {  
+            if (this[i] === obj) {  
+                return true;  
+            }  
+        }  
+        return false;  
+    }  
+
+    window.onload = function() {
+        var table = document.getElementById('DetailTable');
+
+        table.style.height = (screen.height - 240) + 'px';
+        tabH = screen.height - 235;
+
+        if(globalValiable && globalValiable.data) {
+            queryParams = globalValiable.queryParams;
+
+            var originData = globalValiable.data;
+            for(var i = 0; i < originData.length; i++) {    
+                var center = originData[i]["fb"],
+                    site = originData[i]["site"];
+
+                if((!centerlist.contains(center))&&(center != null)){
+                    centerlist.push(center);
+                    document.getElementById("type2")
+                    .options.add(new Option(center,center));
+                }
+
+                if((!sitelist.contains(site))&&(site != null)){
+                    sitelist.push(site);
+                    document.getElementById("type3")
+                    .options.add(new Option(site,site));
+                }              
+            }
+
+            ShowTable();
+            return;
+        }
+    } 
+
+    function ShowTable(){
+        var originData = globalValiable.data,
+            staus = document.getElementById('type1').value,
+            center = document.getElementById('type2').value,
+            site = document.getElementById('type3').value,
+            type = document.getElementById('type4').value,
+            pay = document.getElementById('type5').value,
+            frozen = [],
+            columns = [],
+            data = [];
+
+        frozen.push({field:'day',title:'日期',align: 'left',width: 80});
+        frozen.push({field:'code',title:'工卡号',align: 'right',width: 60});
+        frozen.push({field:'site',title:'站点',align: 'right',width: 120});
+        frozen.push({field:'cen',title:'分拨',align: 'right',width: 80});
+        columns.push({field:'type',title:'类型',align: 'right',width: 60});
+        columns.push({field:'ct',title:'考勤时间',align: 'right',width: 80});
+        columns.push({field:'st',title:'规定时间',align: 'right',width: 80});
+        columns.push({field:'tim',title:'延误时间',align: 'right',width: 60});
+        columns.push({field:'pay',title:'罚款金额',align: 'right',width: 60});
+
+        for(var i = 0; i < originData.length; i++) {
+            var s = originData[i]["site"],
+                u = originData[i]["staus"],
+                c = originData[i]["fb"],
+                t = originData[i]["type"],
+                p = originData[i]["pay"],
+                valve = 1;
+
+            var temp = {
+            'day':originData[i]["inday"],
+            'code':originData[i]["code"],
+            'site':originData[i]["site"],
+            'cen':originData[i]["fb"],
+            'type':originData[i]["type"],
+            'ct':originData[i]["ct"],
+            'st':originData[i]["st"],
+            'tim':originData[i]["timing"],
+            'pay':originData[i]["pay"]
+            };
+
+            if(!((staus == 'all')||(staus == u))){
+                valve = 0;
+            }
+
+            if(!((center == 'all')||(center == c))){
+                valve = 0;
+            }
+
+            if(!((site == 'all')||(site == s))){
+                valve = 0;
+            }
+
+            if(!((type == 'all')||(type == t))){
+                valve = 0;
+
+            }
+
+            if(pay != 'all'){
+                if(((pay == 'true')&&(p == 0))||((pay == 'false')&&(p != 0))){
+                    valve = 0;
+                }
+            }
+
+            if(valve){
+                data.push(temp);
+            }
+        }
+
+        $('#DetailTable').datagrid({  
+            width: 'auto',  
+            height:tabH,               
+            striped: true,  
+            rownumbers:true,  
+            frozenColumns:[frozen],   
+            columns:[columns],
+            data:data
+        });         
+    }
+    </script>
+
+    <style type="text/css">
+        dt {font-family:Microsoft YaHei;font-size:20px;}
+        dd {font-family:Microsoft YaHei;font-size:16px;text-indent:30px}
+    </style>
+</head>
+
+<body>
+    <div class="easyui-tabs" id='Tab' data-options='fit:true'>
+        <div title="细节表" id='TabTable' style="font-family:Microsoft YaHei;font-size:12px;">
+            分拨: <select id="type2" style="font-family:Microsoft YaHei;font-size:12px;" onchange="ShowTable()">  
+            <option value="all">全部</option>  
+            </select>&nbsp;
+            站点: <select id="type3" style="font-family:Microsoft YaHei;font-size:12px;" onchange="ShowTable()">  
+            <option value="all">全部</option>  
+            </select>&nbsp;
+            状态: <select id="type1" style="font-family:Microsoft YaHei;font-size:12px;" onchange="ShowTable()">  
+            <option value="all">全部</option> 
+            <option value="漏扫">漏扫</option> 
+            <option value="正常">正常</option> 
+            <option value="延误">延误</option> 
+            </select>&nbsp;
+            类型: <select id="type4" style="font-family:Microsoft YaHei;font-size:12px;" onchange="ShowTable()">  
+            <option value="all">全部</option>  
+            <option value="交件到港">交件到港</option>  
+            <option value="取件离港">取件离港</option>  
+            </select>&nbsp;
+            罚款: <select id="type5" style="font-family:Microsoft YaHei;font-size:12px;" onchange="ShowTable()">
+            <option value="all">全部</option>  
+            <option value="true">是</option> 
+            <option value="false">否</option>   
+            </select>&nbsp;
+            <table id="DetailTable" style="height:640px"></table>      
+        </div>  
+        <div title="说明书" id='TabNotice'>
+            <dl>
+            <dt>取值逻辑</dt>
+            <dd>- 根据当日站点发件扫描、分拨的发件扫描，对比班车考勤，查出交件漏扫、接件漏扫班车。打卡的班车则根据打卡时间、打卡类型，对比规定打卡时间，判断考勤是否延误、计算延误时间和理论处罚金额</dd>
+            <dt>时间节点</dt>
+            <dd>- 当日14:30至次日14:30</dd>
+            <dd>- 按考勤时间计算</dd>
+            <dt>注意点</dt>
+            <dd>- 由于系统规定考勤时间不带日期格式，和打卡时间对比时会出现如下情况：规定时间是凌晨，打卡时间是前一日晚上，导致打卡时间大于规定时间。故做如下修正：规定时间在0:00到7:59间，打卡时间在18:00~23:59间，认为准时打卡；打卡时间在0:00点到7:59点间，规定时间在18:00~23:59间，认为延误。</dd>
+            <dd>- 规定时间在18:00~23:59间，打卡时间在当日0:00点到7:59点间，在提早10个小时打卡的情况下，可能会误判为延误。但是此种情况罕见，几乎没有大的影响</dd>
+            <dd>- 数据结果中不包含直客窗口、派送窗口以及各种项目等站点数据</dd>
+            </dl>
+        </div>
+    </div>
+</body>
+</html>

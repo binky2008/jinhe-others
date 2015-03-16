@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html> 
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>    
+<meta charset="UTF-8">
+<title>用户注册</title>
+
+<link href="../../tools/tssJS/css/tss.all.css" rel="stylesheet">
+<link href="../../css/css.css" rel="stylesheet">
+
+<script src="../../tools/tssJS/tssJS.all.js"></script>
+<script src="../../tools/tssUtils.js"></script>
+
+<style>
+
+	body { margin: 3px; font-size: 12px; background-color:#E7E7E7; overflow:hidden; }
+	.dialog { width:550px; height:250px; position:relative; overflow:hidden; }
+
+</style>
+
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+
+    XML_REGISTER_INFO  = "UserInfo";
+	XML_SECURITY_LEVEL = "SecurityLevel";
+
+    /* XMLHTTP请求地址汇总 */
+    URL_INIT = AUTH_PATH + "user/register/form";
+    URL_REGISTER = NO_AUTH_PATH + "register.in";
+    URL_CHECK_PASSWORD = NO_AUTH_PATH + "getPasswordStrength.in";
+
+	if( IS_TEST ) {
+		URL_INIT = "data/_register_init.xml";
+		URL_REGISTER = "data/_success.xml";
+		URL_CHECK_PASSWORD = "data/_password_check.xml";
+	}
+
+	var registerForm;
+
+    function init() {
+		$.ajax({
+			url : URL_INIT,
+			headers : {"appCode": FROMEWORK_CODE, "anonymous": "true"},
+			onresult : function() { 
+				var registerXML = this.getNodeValue(XML_REGISTER_INFO);
+				$.cache.XmlDatas[XML_REGISTER_INFO] = registerXML;
+				registerForm = $.F("registerForm", registerXML);
+
+				$1("password").onblur = function() { 
+					var password = this.value;
+					registerForm.updateDataExternal("password", password);
+
+					if(password == null || password == "") return;
+					
+					var loginName = registerForm.getData("loginName");
+					checkPasswordSecurityLevel(registerForm, URL_CHECK_PASSWORD, password, loginName);
+				}
+			}
+		});
+    }
+ 
+    function register(){
+		$.ajax({
+			url : URL_REGISTER,
+			headers : {"appCode": FROMEWORK_CODE, "anonymous": "true"},
+			formNode : $.cache.XmlDatas[XML_REGISTER_INFO].querySelector("data"),
+			onsuccess : function() { 
+				if( opener ) {  // opener返回对创建该窗口的Window 对象的引用
+					var loginName = registerForm.getData("loginName");
+					opener.$.F("loginForm").updateDataExternal("userName", loginName); 
+				}
+				window.close();
+			}
+		});
+    }
+
+    /* 检测注册表单是否填写正确 */
+    function checkRegisterForm(){
+        var flag = true;
+
+        var password1 = $1("password").value; 
+        var password2 = $1("password2").value; 
+		if(password1 != password2) {
+			flag = false;
+			alert("两次密码输入不一致，请重新输入");
+		}
+        return flag;
+    }
+
+    window.onload = init;
+
+//-->
+</SCRIPT>
+</head>
+
+<body>
+	<div class="dialog">
+		<div id="registerForm"></div>
+		<div class="bts">
+			<input type="button" class="btStrong" value="提交" onclick="if( checkRegisterForm() ) { register() }"/>
+			<input type="button" class="btWeak"   value="关闭" onclick="window.close()"/>
+		</div>
+	</div>
+</body>
+</html>

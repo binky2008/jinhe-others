@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>问题件明细</title>
+
+    <link rel="stylesheet" type="text/css" href="../../tools/easyui/themes/default/easyui.css">
+    <link rel="stylesheet" type="text/css" href="../../tools/easyui/themes/icon.css">
+    <link rel="stylesheet" type="text/css" href="../../dm/common.css">
+
+    <script src="../../tools/easyui/jquery.min.js"></script>
+    <script src="../../tools/easyui/jquery.easyui.min.js"></script>
+
+    <script src="../../framework/core.js"></script>
+    <script src="../../framework/ajax.js"></script>
+    <script src="../../dm/common.js"></script>
+
+    <script type="text/javascript">
+    var globalValiable = window.parent.globalValiable,
+        deallist = [],
+        prolist = [],
+        creatlist = [],
+        acceptlist = [],
+        typelist = [],
+        tabH,
+        textW;
+
+    Array.prototype.contains = function(obj) {  
+        var i = this.length;  
+        while (i--) {  
+            if (this[i] === obj) {  
+                return true;  
+            }  
+        }  
+        return false;  
+    }  
+
+    window.onload = function() {
+        var table = document.getElementById('DetailTable');
+
+        table.style.height = (screen.height - 240) + 'px';
+        tabH = screen.height - 235;
+        textW = table.style.width - 1200;
+
+        if(globalValiable && globalValiable.data) {
+            queryParams = globalValiable.queryParams;
+
+            var originData = globalValiable.data;
+            for(var i = 0; i < originData.length; i++) {    
+                var deal = originData[i]["处理状态"],
+                    pro = originData[i]["处理问题类型"],
+                    creat = originData[i]["登记方"],
+                    accept = originData[i]["接受方"],
+                    type = originData[i]["来自"];
+
+                if((!deallist.contains(deal))&&(deal != null)){
+                    deallist.push(deal);
+                    document.getElementById("type1")
+                    .options.add(new Option(deal,deal));
+                }
+
+                if((!prolist.contains(pro))&&(pro != null)){
+                    prolist.push(pro);
+                    document.getElementById("type2")
+                    .options.add(new Option(pro,pro));
+                }
+
+                if((!creatlist.contains(creat))&&(creat != null)){
+                    creatlist.push(creat);
+                    document.getElementById("type3")
+                    .options.add(new Option(creat,creat));
+                }
+
+                if((!acceptlist.contains(accept))&&(accept != null)){
+                    acceptlist.push(accept);
+                    document.getElementById("type4")
+                    .options.add(new Option(accept,accept));
+                }
+
+                if((!typelist.contains(type))&&(type != null)){
+                    typelist.push(type);
+                    document.getElementById("type5")
+                    .options.add(new Option(type,type));
+                }                
+            }
+
+            ShowTable();
+            return;
+        }
+    } 
+
+    function ShowTable(){
+        var originData = globalValiable.data,
+            deal = document.getElementById('type1').value,
+            pro = document.getElementById('type2').value,
+            creat = document.getElementById('type3').value,
+            accept = document.getElementById('type4').value,
+            from = document.getElementById('type5').value,
+            frozen = [],
+            columns = [],
+            data = [];
+
+        frozen.push({field:'code',title:'单号',align: 'left',width: 100});
+        columns.push({field:'staus',title:'处理状态',align: 'right',width: 60});
+        columns.push({field:'result',title:'处理结果',align: 'right',width: 60});
+        columns.push({field:'pro',title:'问题类型',align: 'right',width: 100});
+        columns.push({field:'time',title:'登记时间',align: 'right',width: 130});
+        columns.push({field:'creat',title:'登记方',align: 'right',width: 80});
+        columns.push({field:'accept',title:'接受方',align: 'right',width: 80});
+        columns.push({field:'deal',title:'处理方',align: 'right',width: 80});
+        columns.push({field:'send',title:'寄件网点',align: 'right',width: 80});
+        columns.push({field:'disp',title:'派件网点',align: 'right',width: 80});
+        columns.push({field:'num',title:'数量',align: 'right',width: 40});
+        columns.push({field:'weight',title:'重量',align: 'right',width: 60});
+        columns.push({field:'sign',title:'签收状态',align: 'right',width: 60});
+        columns.push({field:'from',title:'来自',align: 'right',width: 60});
+        columns.push({field:'detail',title:'问题描述',align: 'left',width: textW});
+
+        for(var i = 0; i < originData.length; i++) {
+            var d = originData[i]["处理状态"],
+                p = originData[i]["问题类型"],
+                c = originData[i]["登记方"],
+                a = originData[i]["接受方"],
+                f = originData[i]["来自"],
+                valve = 1;
+
+            var temp = {
+            'code':originData[i]["单号"],
+            'staus':originData[i]["处理状态"],
+            'result':originData[i]["处理结果"],
+            'pro':originData[i]["问题类型"],
+            'time':originData[i]["登记时间"],
+            'creat':originData[i]["登记方"],
+            'accept':originData[i]["接受方"],
+            'deal':originData[i]["处理方"],
+            'detail':originData[i]["问题描述"],
+            'send':originData[i]["寄件网点"],
+            'disp':originData[i]["派件网点"],
+            'num':originData[i]["数量"],
+            'weight':originData[i]["重量"],
+            'sign':originData[i]["签收状态"],
+            'from':originData[i]["来自"]
+            };
+
+            if(!((deal == 'all')||(deal == d))){
+                valve = 0;
+            }
+
+            if(!((pro == 'all')||(pro == p))){
+                valve = 0;
+            }
+
+            if(!((creat == 'all')||(creat == c))){
+                valve = 0;
+            }
+
+            if(!((accept == 'all')||(accept == a))){
+                valve = 0;
+
+            }
+
+            if(!((from == 'all')||(from == f))){
+                valve = 0;
+            }
+
+            if(valve){
+                data.push(temp);
+            }
+        }
+
+        $('#DetailTable').datagrid({  
+            width: 'auto',  
+            height:tabH,               
+            striped: true,  
+            rownumbers:true,  
+            frozenColumns:[frozen],   
+            columns:[columns],
+            data:data
+        });         
+    }
+    </script>
+
+    <style type="text/css">
+        dt {font-family:Microsoft YaHei;font-size:20px;}
+        dd {font-family:Microsoft YaHei;font-size:16px;text-indent:30px}
+    </style>
+</head>
+
+<body>
+    <div class="easyui-tabs" id='Tab' data-options='fit:true'>
+        <div title="细节表" id='TabTable' style="font-family:Microsoft YaHei;font-size:12px;">
+            处理状态: <select id="type1" style="font-family:Microsoft YaHei;font-size:12px;" onchange="ShowTable()">  
+            <option value="all">全部</option> 
+            </select>&nbsp;
+            问题类型: <select id="type2" style="font-family:Microsoft YaHei;font-size:12px;" onchange="ShowTable()">  
+            <option value="all">全部</option>  
+            </select>&nbsp;
+            登记方: <select id="type3" style="font-family:Microsoft YaHei;font-size:12px;" onchange="ShowTable()">  
+            <option value="all">全部</option>  
+            </select>&nbsp;
+            接受方: <select id="type4" style="font-family:Microsoft YaHei;font-size:12px;" onchange="ShowTable()">  
+            <option value="all">全部</option>  
+            </select>&nbsp;
+            来自: <select id="type5" style="font-family:Microsoft YaHei;font-size:12px;" onchange="ShowTable()">  
+            <option value="all">全部</option>  
+            </select>&nbsp;
+            <table id="DetailTable" style="height:640px"></table>      
+        </div>  
+        <div title="说明书" id='TabNotice'>
+            <dl>
+            <dt>时间节点</dt>
+            <dd>- 当日00:00至第二日00:00</dd>
+            <dd>- 按问题件登记计算</dd>
+            <dt>注意点</dt>
+            </dl>
+        </div>
+    </div>
+</body>
+</html>

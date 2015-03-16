@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="JFramework" default="release-jf-jar" basedir=".">
+	<property name="src.java" value="${basedir}/src/java"/>
+	<property name="src.test" value="${basedir}/src/test"/>
+	<property name="config.dir" value="${basedir}/src/config"/>
+	
+	<property name="build.dir"  value="${basedir}/build"/>
+	<property name="report.dir"  value="${build.dir}/doc"/>
+	<property name="lib.dir" value="${basedir}/webapp/WEB-INF/lib" />
+	<property name="class.dir" value="${basedir}/webapp/WEB-INF/classes" />
+
+	<path id="runtime.classpath">
+        <fileset dir="${lib.dir}">
+            <include name="**/*.jar"/>
+        </fileset>
+		<fileset dir="D:/Tomcat5527/common/lib">
+            <include name="**/*.jar"/>
+        </fileset>
+        <pathelement path="${class.dir}" />  
+	</path>
+
+	<target name="clean" description="清除所有编译结果">
+		<delete dir="${class.dir}" />
+		<delete dir="${build.dir}" />
+	</target>
+	
+	<target name="compile" depends="clean">
+		<mkdir dir="build/jf.classes" />
+		<javac srcdir="${src.java}" destdir="build/jf.classes" source="1.4" target="1.4" debug="on" fork="yes">
+			<classpath refid="runtime.classpath"/>
+		</javac>
+	</target>
+	
+	<macrodef name="releaseJar">
+		<attribute name="release.jar.name" />
+		<attribute name="jar.content.files" />
+		<sequential>
+			<mkdir dir="${build.dir}" />
+			<delete file="${build.dir}/@{release.jar.name}" />
+			<tstamp prefix="time">
+				<format property="cn-today" pattern="yyyy-MM-dd HH:mm" />
+			</tstamp>
+			<jar destfile="${build.dir}/@{release.jar.name}">
+				<fileset refid="@{jar.content.files}" />
+				<manifest>
+					<attribute name="Build-By" value="${user.name}" />
+					<attribute name="Build-At" value="${time.cn-today}" />
+					<attribute name="Created-By" value="${organization.name}" />
+				</manifest>
+			</jar>
+		</sequential>
+	</macrodef>
+	
+	<target name="release-jf-jar" depends="compile">
+		<copy todir="build/jf.classes">
+			<fileset dir="${config.dir}" includes="**/*.*"/>
+		</copy>
+		<fileset id="class.files" dir="build/jf.classes">
+			<include name="jon/king/framework/**/*.class" />
+			<include name="**/*.properties" />
+		</fileset>
+		<releaseJar release.jar.name="jframework.jar" jar.content.files="class.files"/>
+		<copy todir="${lib.dir}">
+			<fileset dir="${build.dir}" includes="**/*.jar"/>
+		</copy>
+	</target>
+	
+	<target name="war">
+		<delete file="${build.dir}/jf.war"/>
+		<war destfile="jf.war" webxml="${basedir}/webapp/WEB-INF/web.xml">
+			<fileset dir=".">
+				<include name="webapp/index.html"/>
+			</fileset>
+	  		<lib dir="${lib.dir}"/>
+	  		<classes dir="${class.dir}"/>
+	  		<zipfileset dir="${basedir}/webapp/pages" prefix="pages"/>
+		</war>
+	</target>
+	
+	<!-- =================================================================== -->
+	<!--                 测试所有的单元测试                                          -->
+	<!-- =================================================================== -->
+	<target name="junit_test"  description="run junit test">
+		<mkdir dir="${report.dir}" />
+		<junit printsummary="yes" haltonfailure="yes" failureproperty="tests.failed" showoutput="true">			
+			<formatter type="plain" usefile="false"/>
+			<formatter type="xml" />
+			<batchtest todir="${report.dir}">
+				<fileset dir="${src.test}">
+					<include name="**/*Test*.java" />
+				</fileset>
+			</batchtest>
+			<classpath refid="runtime.classpath" />
+		</junit>
+
+		<fail if="tests.failed"> 
+          ***********************************************************
+           **** One or more tests failed! Check the output ... ****
+          ***********************************************************
+        </fail>
+	</target>
+	
+    <!-- =================================================================== -->
+    <!-- The "new" target is used to create a new project by duplicating     -->
+    <!-- this project and replacing "****** " instances with the new name.   -->
+    <!-- =================================================================== -->
+	<target name="new" depends="clean"
+	        description="creates a new project with the specified name">
+		<echo level="info">
+		+--------------------------------------------------------------------+
+		|    --  Welcome to the JFramework New Application Wizard!  --          |
+		| To create a new application, please answer the following questions.|                                                        |
+		+--------------------------------------------------------------------+
+		</echo>
+        <input message="新项目的名称:" addproperty="app.name" defaultvalue="myapp"/>
+        <echo level="info">Creating new application named '${app.name}'...</echo>
+        <copy todir="../${app.name}">
+            <fileset dir="${basedir}">
+            	<include name="**"/>
+            	<exclude name="src/java/**/*.java"/>
+            	<exclude name="src/test/**/*.java"/>
+            	<exclude name="webapp/pages/**/*.htm*"/>
+            	<exclude name="webapp/pages/**/*.jsp"/>
+            	<exclude name="${class.dir}"/>
+            	<exclude name="work"/>
+            </fileset>
+        	<fileset dir="${basedir}/config">
+            	<include name="**"/>
+            </fileset>
+        	<fileset dir="${basedir}/src">
+            	<include name="**"/>
+            </fileset>
+        </copy>
+		<echo level="info">
+		+-------------------------------------------------------------+
+		|           -- Application created successfully! --           |
+		+-------------------------------------------------------------+
+		</echo>
+    </target>	
+</project>
