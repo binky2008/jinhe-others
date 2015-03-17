@@ -1,10 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?>  
-<beans xmlns="http://www.springframework.org/schema/beans" 
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-	xmlns:context="http://www.springframework.org/schema/context" 
-	xmlns:tx="http://www.springframework.org/schema/tx" 
-	xmlns:p="http://www.springframework.org/schema/p" 
-	xmlns:aop="http://www.springframework.org/schema/aop" 
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:aop="http://www.springframework.org/schema/aop"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans  
 	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd  
 	http://www.springframework.org/schema/context  
@@ -13,47 +11,12 @@
 	http://www.springframework.org/schema/tx/spring-tx-3.0.xsd  
 	http://www.springframework.org/schema/aop  
 	http://www.springframework.org/schema/aop/spring-aop-3.0.xsd">
- 
-	<!-- framework config Interceptor -->
-	<bean id="operateInfoInterceptor" class="com.jinhe.tss.framework.persistence.entityaop.OperateInfoInterceptor" />
-	<bean id="decodeInterceptor"  class="com.jinhe.tss.framework.persistence.entityaop.DecodeInterceptor" />
-	
-	<bean class="org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator">
-		<property name="beanNames"> <value>*DAO, *Dao</value> </property>
-		<property name="interceptorNames">
-			<list>
-				<value>operateInfoInterceptor</value>
-				<value>decodeInterceptor</value>
-			</list>
-		</property>
-	</bean>
-	
-	<bean id="businessLogInterceptor" class="com.jinhe.tss.framework.component.log.BusinessLogInterceptor"/>
-	
-	<bean class="org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator">
-		<property name="beanNames"> <value>*Service</value> </property>
-		<property name="interceptorNames">
-			<list>
-				<value>businessLogInterceptor</value>
-				<value>cacheInterceptor</value>
-			</list>
-		</property>
-	</bean>
- 
- 
- 
-	<context:property-placeholder location="classpath:application.properties"/>
-	<bean id="testDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
-		<property name="driverClassName"><value>${db.connection.driver_class}</value></property>
-		<property name="url"><value>${db.connection.url}</value></property>
-		<property name="username"><value>${db.connection.username}</value></property>
-		<property name="password"><value>${db.connection.password}</value></property>
-	</bean> 
 	
 	<bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
-		<property name="persistenceUnitName" value="DMUnit" />
+		<property name="persistenceUnitName" value="tssUnit" />
+		<property name="persistenceXmlLocation" value="classpath:META-INF/persistence.xml" /> 
 		
-		<property name="dataSource" ref="testDataSource" /> <!-- 注入数据源 -->
+		<property name="dataSource" ref="dataSource" /> <!-- 注入数据源bean到实体管理工厂bean -->
 		<property name="jpaVendorAdapter">
 			<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
 				<property name="generateDdl" value="true" /> <!-- 跑Test时，自动生成表结构scheme-->
@@ -66,12 +29,12 @@
 	
 	<!-- 事务由spring管理 -->
 	<bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
-	  <property name="entityManagerFactory" ref="entityManagerFactory" />
+	  <property name="entityManagerFactory" ref="entityManagerFactory" /><!-- 注入实体管理工厂bean到事务管理bean -->
 	</bean>
+
+	<!-- 在主容器中，将Controller的注解排除掉 -->
+	<context:component-scan base-package="com">
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller" />
+	</context:component-scan>
 	
-	
-	<!-- 在主容器中，将Controller的注解排除掉  -->
-	<context:component-scan base-package="com"> 
-		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller" /> 
-	</context:component-scan> 
 </beans>

@@ -21,6 +21,7 @@ import com.jinhe.tss.um.helper.dto.OperatorDTO;
 
 @ContextConfiguration(
 	  locations={
+			"classpath:META-INF/framework-spring.xml",
 		    "classpath:META-INF/remote/um-remote.xml",
 		    "classpath:META-INF/spring-mvc.xml",
 		    "classpath:META-INF/spring-test.xml"

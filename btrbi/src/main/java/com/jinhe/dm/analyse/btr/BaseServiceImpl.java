@@ -23,7 +23,7 @@ public class BaseServiceImpl implements BaseService {
 		if (loginName == null || password == null)
 			return false;
 
-		String script = SqlConfig.getWMSSQL("login", 1);
+		String script = SqlConfig.getScript("login", 1);
 		Map<Integer, Object> paramsMap = new HashMap<Integer, Object>();
 		paramsMap.put(1, loginName);
 		paramsMap.put(2, InfoEncoder.string2MD5(password).toLowerCase());
