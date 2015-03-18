@@ -8,135 +8,218 @@
     <meta name="author" content="百世">
     <link rel="icon" href="../../favicon.ico">
 
-    <title>百世云仓门户</title>
+    <title>百世云仓portal</title>
 
     <!-- Bootstrap core CSS -->
-    <link href="http://cdn.bootcss.com/bootstrap/3.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../../tools/bootstrap/css/bootstrap.css" rel="stylesheet">
+    <link href="../../tools/bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
 
-    <!-- Custom styles  -->
-    <link href="index.css" rel="stylesheet">
+    <style>
 
+body {
+  background: #eee;
+  background-image: url(images/bg.png);
+}
+ 
+/*Navbar*/
+.navbar {
+    margin: 0px;
+}
+.navbar .brand {
+  text-shadow: none; color: #fff; font-family: georgia, serif; 
+}
+
+.navbar .navbar-inner {
+  background: #4d5b76;
+  padding: 0em 1em;
+  margin: 0px;
+  border-radius: 0px;
+  border: 0px;
+}
+
+.navbar .nav {
+  margin: 0em;
+  margin-right: -1em;
+}
+.navbar .nav > li > a {
+  color: #fff;
+  text-shadow: none;
+}
+.navbar .nav > li:hover {
+  background-color: #444;
+}
+.navbar .nav > li > a:hover {
+  color: #fff;
+}
+.navbar .dropdown-menu a:hover {
+  background: none;
+  color: #000;
+}
+.navbar .nav li.dropdown.open > .dropdown-toggle {
+  background-color: #444;
+  color: #fff;
+}
+
+
+/*Navigation*/
+.sidebar-nav {
+  width: 240px;
+  position: absolute;
+  float: left;
+  border-top: none;
+  border-left: none;
+  margin: 0em;
+}
+.sidebar-nav .nav-header {
+  border-top: 1px solid #ffffff;
+  border-bottom: 1px solid #c8c8cb;
+  border-left: none;
+  color: #333;
+  display: block;
+  background: #efeff0;
+  font-weight: normal;
+  font-size: 1em;
+  line-height: 2.5em;
+  padding: 0em .25em;
+  margin-bottom: 0px;
+  text-shadow: none;
+  text-transform: none;
+}
+.sidebar-nav .nav-header .label {
+  float: right;
+  margin-top: .5em;
+  margin-right: .25em;
+  line-height: 1.5em;
+}
+.sidebar-nav .nav-header:hover {
+  background: #efeff0;
+}
+.sidebar-nav .nav-header.collapsed .icon-chevron-up::before {
+  content: "\f078";
+}
+.sidebar-nav .nav-header .icon-chevron-up {
+  float: right;
+}
+.sidebar-nav .nav-header .label {
+  float: right;
+  margin-top: .7em;
+  line-height: 1.5em;
+}
+.sidebar-nav .nav-header i[class^="icon-"] {
+  margin-right: .75em;
+}
+.sidebar-nav .nav-list {
+  margin: 0px;
+  border: 0px;
+  background: #f6f6f6;
+}
+.sidebar-nav .nav-list  > li > a:hover {
+  background: #e0e0e8;
+}
+.sidebar-nav .nav-list  > .active > a,
+.sidebar-nav .nav-list  > .active > a:hover {
+  background: #d2d2dd;
+  color: #555;
+  text-shadow: none;
+}
+.sidebar-nav .nav-list  > .active > a:hover {
+  background: #c3c3d2;
+}
+.sidebar-nav .nav-list  > li > a {
+  color: #444;
+  padding: .5em 1em;
+}
+.sidebar-nav .nav-list.collapse.in {
+  border-bottom: 1px solid #ccc;
+}
+
+
+.content {
+  min-width: 400px;
+  position: relative;
+  min-height: 900px;
+  background: #fff;
+  margin-left: 240px;
+  border-left: 1px solid #cccccc;
+ 
+}
+
+    </style>
+
+    <script type="text/javascript">
+ 
+
+    </script>
+ 
   </head>
 
   <body>
-    <div class="navbar-wrapper">
-      <div class="container">
 
-        <nav class="navbar navbar-inverse navbar-static-top">
-            <div class="navbar-header">
-              <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-              </button>
-              <a class="navbar-brand" href="#">百世云仓Portal</a>
-            </div>
-            <div id="navbar" class="navbar-collapse collapse">
-              <ul class="nav navbar-nav">
-                <li class="active"><a href="#">首页</a></li>
-                <li><a href="#about">介绍</a></li>
-                <li><a href="#contact">联系我们</a></li>
-                <li class="dropdown">
-                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">更多内容 <span class="caret"></span></a>
-                  <ul class="dropdown-menu" role="menu">
-                    <li><a href="#">Action</a></li>
-                    <li><a href="#">Another action</a></li>
-                    <li><a href="#">Something else here</a></li>
-                    <li class="divider"></li>
-                    <li class="dropdown-header">Nav header</li>
-                    <li><a href="#">Separated link</a></li>
-                    <li><a href="#">One more separated link</a></li>
-                  </ul>
-                </li>
-              </ul>
-            </div>
-        </nav>
-      </div>
-    </div>
-
-    <div id="myCarousel" class="carousel slide" data-ride="carousel">
-      <!-- Indicators -->
-      <ol class="carousel-indicators">
-        <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
-        <li data-target="#myCarousel" data-slide-to="1"></li>
-        <li data-target="#myCarousel" data-slide-to="2"></li>
-      </ol>
-      <div class="carousel-inner" role="listbox">
-        <div class="item active">
-          <img src="images/header-bg.png">
-          <div class="container">
-            <div class="carousel-caption">
-              <h1>百世云仓:企业仓配第一品牌.</h1>
-              <p>应用物流数据分析和网络化分仓, 管理运输、快递资源, 为品牌企业提供的仓配一体化的物流外包服务</p>
-              <p><a class="btn btn-lg btn-primary" href="#" role="button">Sign up today</a></p>
-            </div>
-          </div>
-        </div>
-        <div class="item">
-          <img src="images/2.png">
-          <div class="container">
-            <div class="carousel-caption">
-              <h1>服务范围:覆盖全国</h1>
-              <p>30个重点城市 70个云仓, 近100万平米运作面积</p>
-              <p><a class="btn btn-lg btn-primary" href="#" role="button">Learn more</a></p>
-            </div>
-          </div>
-        </div>
-        <div class="item">
-          <img src="data:image/gif;base64,R0lGODlhAQABAIAAAFVVVQAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==">
-          <div class="container">
-            <div class="carousel-caption">
-              <h1>从“第一公里”到“最后一公里”全链路管理</h1>
-              <p>利用自主研发的物流信息系统及覆盖全国的三网资源（快递、快运及供应链网络）, 为客户供应链优化提供一站式物流运输及配送管理服务.</p>
-              <p><a class="btn btn-lg btn-primary" href="#" role="button">查看更多</a></p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <a class="left carousel-control" href="#myCarousel" role="button" data-slide="prev">
-        <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
-        <span class="sr-only">Previous</span>
-      </a>
-      <a class="right carousel-control" href="#myCarousel" role="button" data-slide="next">
-        <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
-        <span class="sr-only">Next</span>
-      </a>
-    </div>
+    <div class="navbar">
+        <div class="navbar-inner">
+            <a class="brand" href="index.html">百世云仓Portal</a>
+            <ul class="nav pull-right">
  
-    <div class="container marketing">
+                <li id="fat-menu" class="dropdown">
+                    <a href="#" role="button" class="dropdown-toggle" data-toggle="dropdown">
+                        <i class="icon-user" style="background-color: #fff"></i> BL00618
+                        <i class="icon-caret-down"></i>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a tabindex="-1" href="#">我的账号</a></li>
+                        <li class="divider"></li>
+                        <li><a tabindex="-1" class="visible-phone" href="#">修改密码</a></li>
+                        <li class="divider visible-phone"></li>
+                        <li><a tabindex="-1" href="login.html">退出</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
 
-      <div class="row">
-        <div class="col-lg-4">
-          <img class="img-circle" src="images/4.jpg" style="width: 140px; height: 140px;">
-          <h2>供应链优化</h2>
-          <p>利用百世全国仓储和运输资源，为客户提供从工厂到仓库、经销商、门店和消费者的全链路供应链优化。包括生产计划、工厂提货、仓库选址、运输方式和资源配置。为客户提供“总仓+分仓”操作模式。根据客户的运作特点，选择区域分仓、季节性分仓和活动分仓等方式。</p>
-          <p><a class="btn btn-default" href="#" role="button">查看更多 &raquo;</a></p>
-        </div>
-        <div class="col-lg-4">
-          <img class="img-circle" src="images/5.jpg" style="width: 140px; height: 140px;">
-          <h2>降低物流成本</h2>
-          <p>百世通过对客户历史运营数据的分析，设计平行分仓，产地设置总仓，分仓地域可以覆盖华东、华南、华北、华中、西南、西北，利用干线运输、分仓备货、区域配送的方式，将单纯快递成本转换成干线运输加区域配送的综合成本，降低物流费用。</p>
-          <p><a class="btn btn-default" href="#" role="button">查看更多 &raquo;</a></p>
-        </div>
-        <div class="col-lg-4">
-          <img class="img-circle" src="images/6.jpg" style="width: 140px; height: 140px;">
-          <h2>提升客户体验</h2>
-          <p>百世基于优选快递组合逻辑，通过数据分析，优选线路快递供应商，实现每个包裹相对较好的配送品质。同时百世一站式客服团队提供全程订单监控，当订单出现异常时，提前告知，及时响应，在买家提出问题前协助卖家解决物流问题，提高客户的物流体验.</p>
-          <p><a class="btn btn-default" href="#" role="button">查看更多 &raquo;</a></p>
-        </div>
-      </div>
+    <div class="sidebar-nav">
+        <a href="#dashboard-menu" class="nav-header" data-toggle="collapse"><i class="icon-dashboard"></i>Dashboard</a>
+        <ul id="dashboard-menu" class="nav nav-list collapse in">
+            <li><a href="index.html">Home</a></li>
+            <li ><a href="users.html">Sample List</a></li>
+            <li ><a href="user.html">Sample Item</a></li>
+            <li ><a href="media.html">Media</a></li>
+            <li ><a href="calendar.html">Calendar</a></li>
+            
+        </ul>
 
-      <!-- FOOTER -->
-      <footer>
-         
-      </footer>
+        <a href="#accounts-menu" class="nav-header" data-toggle="collapse"><i class="icon-briefcase"></i>Account<span class="label label-info">+3</span></a>
+        <ul id="accounts-menu" class="nav nav-list collapse">
+            <li ><a href="sign-in.html">Sign In</a></li>
+            <li ><a href="sign-up.html">Sign Up</a></li>
+            <li ><a href="reset-password.html">Reset Password</a></li>
+        </ul>
+
+        <a href="#error-menu" class="nav-header collapsed" data-toggle="collapse"><i class="icon-exclamation-sign"></i>Error Pages <i class="icon-chevron-up"></i></a>
+        <ul id="error-menu" class="nav nav-list collapse">
+            <li ><a href="403.html">403 page</a></li>
+            <li ><a href="404.html">404 page</a></li>
+            <li ><a href="500.html">500 page</a></li>
+            <li ><a href="503.html">503 page</a></li>
+        </ul>
+
+        <a href="#legal-menu" class="nav-header" data-toggle="collapse"><i class="icon-legal"></i>Legal</a>
+        <ul id="legal-menu" class="nav nav-list collapse">
+            <li ><a href="privacy-policy.html">Privacy Policy</a></li>
+            <li ><a href="terms-and-conditions.html">Terms and Conditions</a></li>
+        </ul>
+
+        <a href="help.html" class="nav-header" ><i class="icon-question-sign"></i>Help</a>
+        <a href="faq.html" class="nav-header" ><i class="icon-comment"></i>Faq</a>
+    </div>
+
+    <div class="content" style="background-color:#fff">
 
     </div>
 
     <!-- Bootstrap core JavaScript -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src="http://cdn.bootcss.com/jquery/1.11.2/jquery.min.js"></script>
-    <script src="http://cdn.bootcss.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+    <script src="../../tools/jquery/jquery.min.js"></script>
+    <script src="../../tools/bootstrap/js/bootstrap.js"></script>
   </body>
 </html>
