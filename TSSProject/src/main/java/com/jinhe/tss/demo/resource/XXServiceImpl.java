@@ -19,11 +19,11 @@ public class XXServiceImpl implements XXService {
     }
  
     @SuppressWarnings("unchecked")
-    public List<XX> getAllXX() {
+    public List<XX> getAll() {
         return (List<XX>) XXDao.getEntities("from XX o order by o.decode");
     }
  
-    public XX saveXX(XX entity) {
+    public XX save(XX entity) {
         if ( entity.getId() == null ) {
             entity.setSeqNo(XXDao.getNextSeqNo(entity.getParentId()));
             XXDao.create(entity);

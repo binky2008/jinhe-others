@@ -1,6 +1,8 @@
-package com.best.cwp.demo;
+package com.jinhe.tss.demo.crud;
 
 import java.util.List;
+
+import com.jinhe.tss.framework.persistence.pagequery.PageInfo;
  
 public interface DemoService {
 
@@ -13,5 +15,7 @@ public interface DemoService {
 	DemoEntity update(DemoEntity entity);
 	
 	DemoEntity delete(Long id);
+	
+	PageInfo search(DemoSO so);
 }
 

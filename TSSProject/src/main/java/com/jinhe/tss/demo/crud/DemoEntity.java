@@ -1,4 +1,4 @@
-package com.best.cwp.demo;
+package com.jinhe.tss.demo.crud;
 
 import java.io.Serializable;
 

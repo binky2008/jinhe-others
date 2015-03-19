@@ -1,9 +1,12 @@
-package com.best.cwp.demo;
+package com.jinhe.tss.demo.crud;
 
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.jinhe.tss.framework.persistence.pagequery.PageInfo;
+import com.jinhe.tss.framework.persistence.pagequery.PaginationQueryByHQL;
  
 @Service("DemoService")
 public class DemoServiceImpl implements DemoService {
@@ -30,5 +33,13 @@ public class DemoServiceImpl implements DemoService {
 		return dao.deleteById(id);
 	}
  
+    public PageInfo search(DemoSO so) {
+        String hql = " from DemoEntity o " 
+        		+ " where 1=1 " + so.toConditionString() 
+        		+ " order by o.id desc ";
+ 
+        PaginationQueryByHQL pageQuery = new PaginationQueryByHQL(dao.em(), hql, so);
+        return pageQuery.getResultList();
+    }
 }
 

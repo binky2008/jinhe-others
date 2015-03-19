@@ -1,4 +1,4 @@
-package com.best.cwp;
+package com.jinhe.tss.demo;
 
 import org.apache.log4j.Logger;
 import org.junit.Before;

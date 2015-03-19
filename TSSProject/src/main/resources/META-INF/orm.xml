@@ -6,6 +6,10 @@
 	
 	<entity class="com.jinhe.tss.um.entity.permission.RoleUserMapping"/>
 	
-	<entity class="com.best.cwp.demo.DemoEntity"/>
+	<entity class="com.jinhe.tss.demo.crud.DemoEntity"/>
+	
+	<entity class="com.jinhe.tss.demo.resource.XX"/>
+	<entity class="com.jinhe.tss.demo.resource.XXPermission"/>
+	<entity class="com.jinhe.tss.demo.resource.XXResource"/>
 	
 </entity-mappings>

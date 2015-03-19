@@ -15,7 +15,7 @@ public interface XXService {
     		resourceType = XX.RESOURCE_TYPE,
 	        operation = XX.OPERATION_VIEW
 	)
-    List<XX> getAllXX();
+    List<XX> getAll();
 
     @PermissionTag(
     		application = XX.RESOURCE_TYPE,
@@ -23,7 +23,7 @@ public interface XXService {
             operation = XX.OPERATION_EDIT , 
             filter = PermissionFilter4Create.class)
     @Logable(operateObject="XX资源",  operateInfo="新增/更新了：${args[0]?default(\"\")}")
-    XX saveXX(XX entity);
+    XX save(XX entity);
     
     @Logable(operateObject="XX资源", operateInfo="删除了：${returnVal?default(\"\")}")
     XX delete(Long id);

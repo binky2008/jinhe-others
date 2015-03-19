@@ -1,4 +1,6 @@
-package com.best.cwp;
+package com.jinhe.tss.demo;
+
+import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.junit.After;
@@ -18,6 +20,9 @@ import com.jinhe.tss.framework.sso.context.Context;
 import com.jinhe.tss.framework.test.IH2DBServer;
 import com.jinhe.tss.um.UMConstants;
 import com.jinhe.tss.um.helper.dto.OperatorDTO;
+import com.jinhe.tss.um.permission.PermissionHelper;
+import com.jinhe.tss.um.permission.PermissionService;
+import com.jinhe.tss.um.service.ILoginService;
 
 @ContextConfiguration(
 	  locations={
@@ -33,7 +38,11 @@ public abstract class TxTestSupport extends AbstractTransactionalJUnit4SpringCon
     protected static Logger log = Logger.getLogger(TxTestSupport.class);    
     
     @Autowired protected IH2DBServer dbserver;
+    
     @Autowired protected ParamService paramService;
+    @Autowired protected ILoginService loginSerivce;
+    @Autowired protected PermissionService permissionService;
+    @Autowired protected PermissionHelper permissionHelper;
     
     protected MockHttpServletRequest request;
     protected MockHttpServletResponse response;
@@ -43,9 +52,15 @@ public abstract class TxTestSupport extends AbstractTransactionalJUnit4SpringCon
         Global.setContext(super.applicationContext);
         Context.setResponse(response = new MockHttpServletResponse());
 		Context.initRequestContext(request = new MockHttpServletRequest());
-    	
-    	// 初始化虚拟登录用户信息
-        login(UMConstants.ADMIN_USER_ID, UMConstants.ADMIN_USER_NAME);
+		
+		// DB数据在一轮跑多个单元测试中初始化一次就够了。
+        if( dbserver.isPrepareed() ) {
+            return;
+        }
+        
+        init();
+        
+        dbserver.setPrepareed(true);
     }
     
     protected String getDefaultSource(){
@@ -57,10 +72,20 @@ public abstract class TxTestSupport extends AbstractTransactionalJUnit4SpringCon
         dbserver.stopServer();
     }
     
+    private void init() {
+    	// 初始化虚拟登录用户信息
+        login(UMConstants.ADMIN_USER_ID, UMConstants.ADMIN_USER_NAME);
+ 
+    }
+    
     protected void login(Long userId, String loginName) {
     	OperatorDTO loginUser = new OperatorDTO(userId, loginName);
     	String token = TokenUtil.createToken("1234567890", userId); 
         IdentityCard card = new IdentityCard(token, loginUser);
         Context.initIdentityInfo(card);
+        
+        // 获取登陆用户的权限（拥有的角色）并保存到用户权限（拥有的角色）对应表
+        List<Object[]> userRoles = loginSerivce.getUserRolesAfterLogin(userId);
+        permissionService.saveUserRolesAfterLogin(userRoles, userId);
     }
 }
