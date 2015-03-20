@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Demo</title>
+    <title>CRUD Demo</title>
     <link rel="stylesheet" type="text/css" href="../../tools/easyui/themes/default/easyui.css">
     <link rel="stylesheet" type="text/css" href="../../tools/easyui/themes/icon.css">
 
@@ -39,7 +39,7 @@
 </head>
 <body>
     <table id="dg" title="数据列表" class="easyui-datagrid" 
-        url="../demo/"
+        url="../../demo/"
         toolbar="#toolbar" pagination="true"
         rownumbers="true" fitColumns="true" fit="true" singleSelect="true">
         <thead>
@@ -97,7 +97,7 @@ var url;
 function newUser(){
     $('#dlg').dialog('open').dialog('setTitle','新增').dialog('center');
     $('#fm').form('clear');
-    url = '../demo';
+    url = '../../demo';
 }
 
 function editUser(){
@@ -105,7 +105,7 @@ function editUser(){
     if (row){
         $('#dlg').dialog('open').dialog('setTitle','修改').dialog('center');
         $('#fm').form('load', row);
-        url = '../demo?id=' + row.id;
+        url = '../../demo?id=' + row.id;
     }
 }
 
@@ -136,16 +136,16 @@ function destroyUser(){
         $.messager.confirm('Confirm','Are you sure you want to destroy this user?', function(r){
             if (r) {
                 $.ajax({
-                     url: '../demo/' + row.id,
+                     url: '../../demo/' + row.id,
                      type: 'DELETE',
                      success: function(result) {
-                        if (result.success){
-                            $('#dg').datagrid('reload'); // reload the user data
-                        } else {
+                        if (result.errorMsg){
                             $.messager.show({ // show error message
                                 title: 'Error',
                                 msg: result.errorMsg
                             });
+                        } else {
+                            $('#dg').datagrid('reload'); // reload the user data
                         }
                      }
                 });

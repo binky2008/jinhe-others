@@ -33,18 +33,16 @@ public class DemoAction {
     
     @RequestMapping(method = RequestMethod.POST)
     @ResponseBody
-    public DemoEntity create(DemoEntity entity) {
-        service.create(entity);
+    public DemoEntity save(DemoEntity entity) {
+    	if(entity.getId() == null) {
+    		service.create(entity);
+    	}
+    	else {
+    		service.update(entity);
+    	}
         return entity;
     }
-    
-    @RequestMapping(method = RequestMethod.PUT)
-    @ResponseBody
-    public DemoEntity update(DemoEntity entity) {
-        service.update(entity);
-        return entity;
-    }
-    
+ 
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
     @ResponseBody
     public DemoEntity delete(@PathVariable Long id) {

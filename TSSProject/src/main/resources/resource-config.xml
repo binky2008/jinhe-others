@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <application applicationId="cwp" name="Demo系统">
 
-	<resourceType resourceTypeId="R1" name="XX资源" seqNo="21" description="XX资源" 
+	<resourceType resourceTypeId="R1" name="XX资源" seqNo="31" description="XX资源" 
 		permissionTable="com.jinhe.tss.demo.resource.XXPermission" 
 		resourceTable="com.jinhe.tss.demo.resource.XXResource">
 		

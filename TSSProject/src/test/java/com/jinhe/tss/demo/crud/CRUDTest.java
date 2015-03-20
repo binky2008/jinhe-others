@@ -23,7 +23,7 @@ public class CRUDTest extends TxTestSupport {
 		DemoEntity entity = new DemoEntity();
 		entity.setCode("test 1");
 		entity.setName("test 1");
-		entity = action.create(entity );
+		entity = action.save(entity );
 		
 		Long id = entity.getId();
 		Assert.assertNotNull(id);
@@ -32,7 +32,7 @@ public class CRUDTest extends TxTestSupport {
 		Assert.assertEquals("test 1", entity.getCode());
 		
 		entity.setName("test 1 update");
-		action.update(entity);
+		action.save(entity);
 		entity = action.getEntityById(id);
 		Assert.assertEquals("test 1 update", entity.getName());
 		

@@ -18,8 +18,6 @@ XML_SOURCE_TREE = "SourceTree";
 XML_SOURCE_LIST = "SourceList";
 XML_SOURCE_INFO = "SourceInfo";
 
-PAGESIZE = 100;
-
 /* XMLHTTP请求地址汇总 */
 URL_SOURCE_TREE    = AUTH_PATH + "xx/tree";
 URL_SOURCE_LIST    = AUTH_PATH + "xx/grid/";
@@ -30,7 +28,7 @@ URL_SORT_SOURCE    = AUTH_PATH + "xx/sort/";
 URL_MOVE_SOURCE    = AUTH_PATH + "xx/move/";
 URL_GET_OPERATION  = AUTH_PATH + "xx/operations/";  // {id}
 
-if(IS_TEST) {
+if(true) {
     URL_SOURCE_TREE    = "data/xx_tree.xml?";
     URL_SOURCE_LIST    = "data/xx_grid.xml?";
     URL_SOURCE_DETAIL  = "data/xx1.xml?";
@@ -55,30 +53,64 @@ function init() {
 function initMenus() {
     /* 树菜单初始化  */
     var item1 = {
-        label:"浏览日志",
-        callback:showLogList,
-        icon:"images/view_list.gif",
-        visible:function() { return !isTreeRoot(); }
+        label:"查看",
+        callback: function() {
+            showDetail(false, true);
+        },
+        icon: ICON + "icon_view.gif",
+        visible:function() {return !isTreeRoot() && getOperation("1"); }
     }
     var item2 = {
-        label:"搜索日志",
-        callback:searchLog,
-        icon:"images/search.gif",
+        label:"修改",
+        callback: function() {
+            showDetail(false, false);
+        },
+        icon: ICON + "icon_edit.gif",
+        visible:function() {return !isTreeRoot() && !isTreeNodeDisabled() && getOperation("2"); }
+    }
+    var item3 = {
+        label:"新增",
+        callback: function() {
+            showDetail(true, false, "1");
+        },
+        icon: ICON + "icon_new.gif",
+        visible:function() {return (isReportGroup() || isTreeRoot()) && !isTreeNodeDisabled() && getOperation("2");}
+    }
+    var item4 = {
+        label:"删除",
+        callback:deleteReport,
+        icon: ICON + "icon_del.gif",
+        visible:function() {return !isTreeRoot() && getOperation("3");}
+    }
+    var item5 = {
+        label:"移动到",
+        callback:moveReport,
+        icon: ICON + "icon_move.gif",
+        visible:function() {return !isTreeRoot() && getOperation("2");}
+    }
+    var item6 = {
+        label:"搜索",
+        callback:search,
+        icon: ICON + "search.gif",
         visible:function() { return !isTreeRoot(); }
     }
 
     var menu = new $.Menu();
     menu.addItem(item1);
     menu.addItem(item2);
+    menu.addItem(item3);
+    menu.addItem(item4);
+    menu.addSeparator();
+    menu.addItem(item5);
+    menu.addItem(item6);
+
     $1("tree").contextmenu = menu;
 
     /* Grid菜单初始化  */
     var item3 = {
         label:"查看",
-        callback: function() {
-            showLogInfo(false);
-        },
-        icon:"images/view.gif"
+        callback: showDetail,
+        icon: ICON + "icon_view.gif"
     }
 
     var menu2 = new $.Menu();
@@ -87,18 +119,26 @@ function initMenus() {
 }
 
 function loadInitData() {
-    $.ajax({
-        url : URL_INIT, 
-        onresult : function() {
-            var tree = $.T("tree", this.getNodeValue(XML_MAIN_TREE));
-            tree.onTreeNodeDoubleClick = function(ev) {
-                if( !isTreeRoot() ) { showLogList(); }
-            }
-            tree.onTreeNodeRightClick = function(ev) {
-                onTreeNodeRightClick(ev);
-            }
+    var onresult = function() {
+        var tree = $.T("tree", this.getNodeValue(XML_SOURCE_TREE));
+
+        tree.onTreeNodeDoubleClick = function(ev) {
+            var treeNode = getActiveTreeNode();
+            getTreeOperation(treeNode, function(_operation) {            
+                showDetail(false, false);
+            });
         }
-    });
+        tree.onTreeNodeRightClick = function(ev) {
+            onTreeNodeRightClick(ev, true);
+            $("#searchFormDiv").hide();
+        }
+        tree.onTreeNodeMoved = function(ev) {
+            $("#searchFormDiv").hide();
+            sortTreeNode(URL_SORT_SOURCE, ev);
+        }
+    }
+
+    $.ajax({url : URL_SOURCE_TREE, onresult : onresult});
 }
 
 /* grid加载数据  */
@@ -106,14 +146,14 @@ function loadGridData(requestParam, page) {
     $.showGrid(URL_LOG_LIST, XML_LOG_LIST, showLogInfo, "grid", page, requestParam);
 }
 
-function showLogList() {
+function showGrid() {
     var params = {"operateTable": getTreeNodeId()};
     loadGridData(params, "1"); 
 }
 
-function searchLog() {
+function search() {
     var treeNode = $.T("tree").getActiveTreeNode();
-    popupForm("SearchForm.xml", "SearchLog", {operateTable: treeNode.id}, function(condition) {
+    popupForm("SearchForm.xml", "search", {operateTable: treeNode.id}, function(condition) {
         loadGridData(condition, "1"); 
     }, "日志查询");
 }
@@ -154,6 +194,92 @@ function loadLogDetailData(logId) {
     });
 }
 
+function showDetail(isCreate, readonly, type) { 
+    var treeNode = $.T("tree").getActiveTreeNode();
+    var treeNodeID = treeNode.id;
+    type = type || treeNode.getAttribute("type") ;
+    
+    $("#searchFormDiv").hide();
+    Element.show($1("reportFormDiv"));
+    
+    var params = {};
+    if( isCreate ) {
+        params["parentId"] = treeNodeID; // 新增
+        readonly = false;
+    } else {
+        params["reportId"] = treeNodeID; // 修改                  
+    }
+
+    $1("sourceSave").disabled = readonly ? "true" : "";
+
+    $.ajax({
+        url : URL_SOURCE_DETAIL + "/" + type,
+        params : params,
+        onresult : function() { 
+            var sourceInfoNode = this.getNodeValue(XML_SOURCE_INFO);
+            $.cache.XmlDatas[treeNodeID] = sourceInfoNode;
+            
+            $1("reportForm").editable = readonly ? "false" : "true";
+            var xform = $.F("reportForm", sourceInfoNode);
+        
+            // 设置保存/关闭按钮操作
+            $1("closeReportForm").onclick = function() {
+                closeReportFormDiv();
+            }
+            $1("sourceSave").onclick = function() {
+                saveReport(treeNodeID);
+            }
+        },
+        onexception : function() { 
+            closeReportFormDiv();
+        }
+    });
+}
+
+function saveReport(treeNodeID) {
+    var xform = $.F("reportForm");  
+    if( !xform.checkForm() ) return;
+
+    var request = new $.HttpRequest();
+    request.url = URL_SAVE_SOURCE;
+
+    var sourceInfoNode = $.cache.XmlDatas[treeNodeID];
+    var dataNode = sourceInfoNode.querySelector("data");
+    request.setFormContent(dataNode);
+
+    syncButton([$1("sourceSave")], request); // 同步按钮状态
+
+    request.onresult = function() { // 新增结果返回              
+        var xmlNode = this.getNodeValue(XML_SOURCE_TREE).querySelector("treeNode");
+        appendTreeNode(treeNodeID, xmlNode);
+        closeReportFormDiv();
+    }
+    request.onsuccess = function() { // 更新
+        modifyTreeNode(treeNodeID, "name", xform.getData("name"));
+        modifyTreeNode(treeNodeID, "param", xform.getData("param"));
+        modifyTreeNode(treeNodeID, "displayUri", xform.getData("displayUri"));
+        
+        closeReportFormDiv();
+        delete $.cache.Variables["treeNodeID_SF"];
+    }
+    request.send();
+}
+
+function deleteReport()  { delTreeNode(URL_DELETE_SOURCE); }
+
+function moveReport() {
+    var tree = $.T("tree");
+    var treeNode = tree.getActiveTreeNode();
+    var id  = treeNode.id;
+    var pId = treeNode.parent.id;
+
+    var params = {id:id, parentID: pId};
+    popupTree(URL_GROUPS_TREE, "SourceTree", params, function(target) {
+        var targetId = (target.id == '_root' ? '0' : target.id);
+        moveTreeNode(tree, id, targetId, URL_MOVE_SOURCE);
+    });
+}       
+
 window.onload = init;
 
 //-->
@@ -171,12 +297,12 @@ window.onload = init;
   <!-- 左栏 开始 -->
   <td id="palette">
     <div>
-      <div class="bar">
-      <span class="icon"></span>资源树
-      <span class="refreshTreeBT"></span>
-      <span class="paletteSwitch" id="paletteClose"></span>
-    </div>
-    <Tree id="tree"><div class="loading"></div></Tree>
+        <div class="bar">
+          <span class="icon"></span>资源树
+          <span class="refreshTreeBT"></span>
+          <span class="paletteSwitch" id="paletteClose"></span>
+        </div>
+        <Tree id="tree" moveable="true"></Tree>
     </div> 
   </td>
   <!-- 左栏 结束 -->
