@@ -19,15 +19,15 @@ URL_MOVE_SOURCE    = AUTH_PATH + "rp/move/";
 URL_GET_OPERATION  = AUTH_PATH + "rp/operations/";  // {id}
 
 URL_REPORT_DATA    = NO_AUTH_PATH + "display/";
-URL_REPORT_JSON    = NO_AUTH_PATH + "display/json/";
-URL_REPORT_EXPORT  = NO_AUTH_PATH + "display/export/";
+URL_REPORT_JSON    = NO_AUTH_PATH + "api/json/";
+URL_REPORT_EXPORT  = NO_AUTH_PATH + "data/export/";
 
 URL_REPORT_JOB     = AUTH_PATH + "rp/schedule";
 
 if(IS_TEST) {
-	URL_SOURCE_TREE    = "data/SOURCE_TREE.xml?";
-	URL_GROUPS_TREE    = "data/GROUPS_TREE.xml?";
-	URL_SOURCE_DETAIL  = "data/SOURCE_DETAIL.xml?";
+	URL_SOURCE_TREE    = "data/report_tree.xml?";
+	URL_GROUPS_TREE    = "data/groups_tree.xml?";
+	URL_SOURCE_DETAIL  = "data/report_detail.xml?";
 	URL_SAVE_SOURCE    = "data/_success.xml?";
 	URL_DELETE_SOURCE  = "data/_success.xml?";
 	URL_DISABLE_SOURCE = "data/_success.xml?";
@@ -37,8 +37,8 @@ if(IS_TEST) {
 
 	URL_GET_OPERATION  = "data/_operation.xml?";
 
-	URL_REPORT_DATA    = "data/REPORT_DATA.xml?";
-	URL_REPORT_JSON    = "data/REPORT_JSON.txt?";
+	URL_REPORT_DATA    = "data/report_data.xml?";
+	URL_REPORT_JSON    = "data/report_data.json?";
 	URL_REPORT_EXPORT  = "data/_success.xml?";  
 
 	URL_REPORT_JOB     = "data/report_schedule.json";
@@ -136,6 +136,12 @@ function initMenus() {
 		icon: ICON + "schedule.gif",
 		visible:function() {return isReport() && !isTreeNodeDisabled() && getOperation("2");}
 	}
+    var item13 = {
+        label:"授予角色",
+        icon:"../um/" + ICON + "role_permission.gif",
+        callback:setRole2Permission,   
+        visible:function() {return !isTreeRoot() && getOperation("2");}
+    }
 
 	var menu = new $.Menu();
 	menu.addItem(item1);
@@ -153,6 +159,7 @@ function initMenus() {
 	menu.addSeparator();
 	menu.addItem(item11);
 	menu.addItem(item12);
+	menu.addItem(item13);
 	
 	$1("tree").contextmenu = menu;
 }
@@ -312,14 +319,23 @@ function showReportInPointUrl(treeID, displayUri) {
 		url = url + "&id=" + treeID;
 	}
 
-	// 关闭左栏
-	closePalette();
- 
-	$("#grid").hide();
-	$("#chatFrame").show();
-	$1("chatFrame").setAttribute("src", url);
-	
-	$("#gridToolBar").html("");
+	showGridChart(displayUri, true);
+}
+
+function showGridChart(displayUri, hiddenTree) {
+	if(displayUri) {
+		$("#grid").hide();
+		$("#gridTitle").hide();
+
+		if(hiddenTree) {
+			closePalette(); // 关闭左栏
+		}
+		$("#chatFrame").show().attr("src", displayUri);
+	}
+	else {
+		$("#grid").show();
+		$("#gridTitle").show();
+	}
 }
 
 var globalValiable = {}; // 用来存放传递给iframe页面的信息
@@ -406,8 +422,7 @@ function searchReport(treeID, download) {
 	}
 	
 	request.onresult = function() {
-		$1("grid").style.display = "";
-		$1("chatFrame").style.display = "none";
+		showGridChart();
 
 		var grid = $.G("grid", this.getNodeValue(XML_REPORT_DATA)); 
 		var gridToolBar = $1("gridToolBar");
@@ -568,7 +583,7 @@ function scheduleReport() {
                 }
 			}	
 
-			scheduleForm = $.json2Form("scheduleForm", JSON.stringify(scheduleTemplate) );
+			scheduleForm = $.json2Form("scheduleForm", scheduleTemplate);
 			$.cache.XmlDatas["scheduleFormXML"] = scheduleForm.template.sourceXML;
 
 			scheduleForm.reportId = treeNode.id;
@@ -702,7 +717,7 @@ function closeConfigParams() {
 	$("#reportParamsDiv").hide();
 }
 
-var REPORT_PARAM_FIELDS = ['label', 'type', 'nullable', 'defaultValue', 'checkReg', 'width', 'height', 'options', 'multiple', 'onchange', 'isMacrocode'];
+var REPORT_PARAM_FIELDS = ['label', 'type', 'nullable', 'defaultValue', 'checkReg', 'errorMsg', 'width', 'height', 'options', 'multiple', 'onchange', 'isMacrocode'];
 
 function editParamConfig() {
 	var paramTree = $.T("paramTree");
@@ -715,10 +730,10 @@ function editParamConfig() {
 		if(field === 'type') {
 			fieldValue = fieldValue.toLowerCase();
 			if(fieldValue == "date" || fieldValue == "datetime") {
-				$("#selectRelation").css("display", "none");
+				$("#optionalBox").css("display", "none");
 			}
 			else {
-				$("#selectRelation").css("display", "block");
+				$("#optionalBox").css("display", "block");
 			}
 		}
 
@@ -752,7 +767,7 @@ function editParamConfig() {
     		var newValue = fieldEl.value;
 			if( $.isNullOrEmpty(newValue) ) {
 				if(field === 'label') {
-					return alert("参数名称不能为空");
+					return $(fieldEl).notice("参数名称不能为空");
 				}
 				delete valuesMap[field];
 			}
@@ -794,10 +809,10 @@ function editParamConfig() {
     				if(newValue != "hidden") {
     					$1("_defaultValue").setAttribute("placeholder", "日期类型示例：today-3");
     				}
-					$("#selectRelation").css("display", "none");
+					$("#optionalBox").css("display", "none");
     			}
 				else {
-					$("#selectRelation").css("display", "block");
+					$("#optionalBox").css("display", "block");
 				}
     		}
     		activeNode.setAttribute("value", JSON.stringify(valuesMap));
@@ -815,6 +830,19 @@ function saveConfigParams() {
 
 	var formatResult = JSON.stringify(result).replace(/\"/g, "'").replace(/\{'label/g, "\n  {'label");
 	$.F("reportForm").updateDataExternal("param", formatResult.replace(/\}]/g, "}\n]"));
+}
+
+/* 授予角色 */
+function setRole2Permission() {
+    var treeNode = getActiveTreeNode();
+    globalValiable = {};
+    globalValiable.roleId = treeNode.id;
+    globalValiable.resourceType = "D1";
+    globalValiable.applicationId = "tss";
+    globalValiable.isRole2Resource = "0";
+    globalValiable.title = "把【" + treeNode.name + "】作为资源授予角色";
+
+	showGridChart("../um/setpermission.html", false);
 }
 
 // ------------------------------------------------- 多级下拉选择联动 ------------------------------------------------

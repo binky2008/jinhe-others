@@ -774,6 +774,7 @@
         },
 
         waitingLayerCount: 0,
+        waitingLayerZIndex: 998,
 
         showWaitingLayer: function () {
             var waitingObj = $("#_waiting");
@@ -3136,10 +3137,10 @@
 
     'use strict';
 
-    var showErrorInfo = function(errorInfo, obj) {
+    var showErrorInfo = function(errorMsg, obj) {
         setTimeout(function() {
             if( $.Balloon ) {
-                $(obj).notice(errorInfo);
+                $(obj).notice(errorMsg);
             }
         }, 100);
     },
@@ -3149,21 +3150,22 @@
     },
 
     validate = function() {
-        var empty     = this.el.getAttribute("empty");
-        var errorInfo = this.el.getAttribute("errorInfo");
-        var caption   = this.el.getAttribute("caption").replace(/\s/g, "");
-        var inputReg  = this.el.getAttribute("inputReg");
+        var empty    = this.el.getAttribute("empty");
+        var caption  = this.el.getAttribute("caption").replace(/\s/g, "");
+        var checkReg = this.el.getAttribute("checkReg") || this.el.getAttribute("inputReg");
         
+        var errorMsg;
         var value = this.el.value;
         if(value == "" && empty == "false") {
-            errorInfo = "[" + caption.replace(/\s/g, "") + "] 不允许为空。";
+            errorMsg = "[" + caption.replace(/\s/g, "") + "] 不允许为空。";
         }
-        if(inputReg && !eval(inputReg).test(value)) {
-            errorInfo = errorInfo || "[" + caption + "] 格式不正确，请更正.";
+        if(checkReg && !eval(checkReg).test(value)) {
+            errorMsg = this.el.getAttribute("errorMsg");
+            errorMsg = errorMsg || "[" + caption + "] 格式不正确，请更正.";
         }
 
-        if( errorInfo ) {
-            showErrorInfo(errorInfo, this.el);
+        if( errorMsg ) {
+            showErrorInfo(errorMsg, this.el);
 
             if( !!this.isInstance ) {
                 this.setFocus();
@@ -3285,7 +3287,7 @@
                             continue;
                         }
 
-                        var mode    = column.getAttribute("mode");
+                        var mode    = column.getAttribute("mode") || 'string';
                         var editor  = column.getAttribute("editor");
                         var caption = column.getAttribute("caption");
                         var value   = this.getFieldValue(binding);
@@ -3393,15 +3395,6 @@
                 var fieldObj;
                 var fieldType = field.getAttribute("mode");
                 switch(fieldType) {
-                    case "string":
-                        var colEditor = field.getAttribute("editor");
-                        if(colEditor == "comboedit") {
-                            fieldObj = new ComboField(fieldName, this);
-                        }
-                        else {
-                            fieldObj = new StringField(fieldName, this);
-                        }
-                        break;
                     case "number":
                         fieldObj = new StringField(fieldName, this);
                         break;
@@ -3414,6 +3407,16 @@
                         break;
                     case "hidden":
                         fieldObj = new HiddenFiled(fieldName, this);
+                        break;
+                    case "string":
+                    default:
+                        var colEditor = field.getAttribute("editor");
+                        if(colEditor == "comboedit") {
+                            fieldObj = new ComboField(fieldName, this);
+                        }
+                        else {
+                            fieldObj = new StringField(fieldName, this);
+                        }
                         break;
                 }
 
@@ -4138,7 +4141,22 @@
 
             var mode  = column.getAttribute("mode") || "string";
             switch( mode ) {
+                case "number":  
+                case "date":
+                    cell.title = value;
+                    break;         
+                case "function":                          
+                    break;    
+                case "image":          
+                    cell.innerHTML = "<img src='" + value + "'/>";
+                    break;    
+                case "boolean":      
+                    var checked = (value =="true") ? "checked" : "";
+                    cell.innerHTML = "<form><input class='selectHandle' type='radio' " + checked + "/></form>";
+                    cell.querySelector("input").disabled = true;
+                    break;
                 case "string":
+                default:
                     var editor = column.getAttribute("editor");
                     var editortext = column.getAttribute("editortext");
                     var editorvalue = column.getAttribute("editorvalue");
@@ -4153,20 +4171,6 @@
                     }
                     
                     $(cell).html(value).title(value);                          
-                    break;
-                case "number":  
-                case "date":
-                    cell.title = value;
-                    break;         
-                case "function":                          
-                    break;    
-                case "image":          
-                    cell.innerHTML = "<img src='" + value + "'/>";
-                    break;    
-                case "boolean":      
-                    var checked = (value =="true") ? "checked" : "";
-                    cell.innerHTML = "<form><input class='selectHandle' type='radio' " + checked + "/></form>";
-                    cell.querySelector("input").disabled = true;
                     break;
             }                           
         },
@@ -5735,3 +5739,67 @@
 
     return WorkSpace;
 }); 
+
+/*
+ *  左栏
+ */
+;(function($) {
+ 
+    $.leftbar = function(fn1, fn2) {
+
+        var closeLeftbar = function() {
+                $(".leftbar").removeClass("leftbar-open").addClass("leftbar-hidden");
+            },
+            showLeftbar = function() {
+                $(".leftbar").removeClass("leftbar-hidden").addClass("leftbar-open");
+            };
+
+        var barWidth = 30, f = 0;
+
+        this.init = function() {
+            this.createInDomTree();
+
+            $(".leftbar-menu").toggle(fn1, fn2);
+            $(document).addEvent("mousemove", this.onMouseMove);
+        };
+
+        this.createInDomTree = function() {
+            var el = $.createElement("div", "leftbar");
+            $(el).addClass("leftbar-hidden");
+            $(el).html('<div class="leftbar-menu"><span>&nbsp;</span></div>');
+
+            document.body.appendChild(el);
+        };
+        
+        this.onMouseMove = function(ev) {
+            ev.stopImmediatePropagation();
+
+            var _x = ev.clientX > 0 ? ev.clientX : 1, 
+                i = parseInt(100 / parseInt(document.body.clientWidth / _x, 10), 10), 
+                s = !1;
+
+            if (Math.abs(i - f) < 5)
+                return;
+
+            $(".leftbar").hasClass("leftbar-open") && _x > barWidth && closeLeftbar();
+
+            if (i >= 10 && i <= 50) {
+                var o = barWidth * i * 12 / 100;
+                f > i ? s = barWidth - o : s = -o;
+                s = Math.ceil(s);
+                s > 0 && (s = 0)
+            } 
+            else {
+                i > 50 ? s = -parseInt(barWidth, 10) : i >= 0 && i < 10 && (s = 0);
+            }
+            
+            if (s === 0) {
+                showLeftbar();
+            }
+            f = i;
+        };
+
+        this.init();
+    }
+
+})(tssJS);

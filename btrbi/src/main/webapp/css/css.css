@@ -32,10 +32,21 @@ div.groove { border-left: 1px solid #D1D1D1; border-top: 1px solid #D1D1D1; padd
 .panel .body td.groove .hasframe { height: 100%; }
 .panel .body td.groove #ws .hastree { vertical-align: top; }
 
+.panel .body td.groove { position: relative; }
+.panel .body td.groove .hiddenWS {
+    display: none;
+    position: absolute;
+    bottom: 0px;
+    min-height: 100px;
+    z-index: 100;
+}
+.panel .body td.groove WorkSpace\:Page { border: 0; }
+.panel .body td.groove #gridContainer, .gridContainer { vertical-align: top; }
+
 /* 左栏 */
-#palette { width:300px; padding-right:5px; }
-#palette>div { width:295px; height:100%; border: 1px solid #96969E; position:relative; }
-#palette>div .bar {color: #555555; font-weight: bold; padding: 1px 0px 0px 4px; height: 21px; background: url(../images/panel/title_bg.gif) repeat-x; }
+#palette { width:300px; padding-right:3px; }
+#palette>div { width:98%; height:100%; border: 1px solid #96969E; position:relative; }
+#palette>div .bar { color: #555555; font-weight: bold; padding: 2px 0 0 4px; height: 20px; background: url(../images/panel/title_bg.gif) repeat-x; }
 #palette>div .bar .icon { width:8px; height:8px; margin-right:5px; display:inline-block; background: url(../images/panel/title_icon.gif) no-repeat center;}
 #palette>div .bar .refreshTreeBT { width:16px; height:15px; position:absolute; top:3px; right:20px; cursor:hand; background:url(../images/panel/refresh.gif) no-repeat center; }
 #palette>div .bar .paletteSwitch, #gridTitle .paletteSwitch { position: absolute; top: 1px; width: 18px; height: 18px; cursor: hand;}
@@ -75,9 +86,9 @@ WorkSpace\:Page .Tree a, WorkSpace\:Page .Tree a.hover { border: 1px solid #F7F8
 #relogin_box { width:260px;  padding:10px; }
 #relogin_box h1 { line-height:30px; font-size:15px; padding:0px 5px; border-bottom:1px solid #009999; }
 #relogin_box span { display:block; margin:10px 0px; padding:0px 5px; font-size: 14px; } 
-#relogin_box #loginName, #relogin_box #password { width:160px; height: 20px; font-size: 14px;}
+#relogin_box #loginName, #relogin_box #password { width:160px; height: 20px; font-size: 14px; background-color: #f0f0f0; border: 1px solid #ccc; }
 #relogin_box span.bottonBox { padding-left: 36px; }
-#relogin_box span input { background-color: #f0f0f0; border: 1px solid #ccc; margin-left: 10px;}
+#relogin_box span input { margin-left: 10px;}
 
 .dialog { border:1px solid #98989C; background-color:#fff; margin: 0 auto 0 auto; overflow:auto; padding:5px; position: absolute; top:100px;}
 .dialog .tssForm { padding-top: 10px;}
