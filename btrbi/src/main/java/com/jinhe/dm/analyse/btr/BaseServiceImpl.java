@@ -45,7 +45,7 @@ public class BaseServiceImpl implements BaseService {
 	
 	@SuppressWarnings("unchecked")
 	public List<Map<String, Object>>  getOrgList() {
-		String script = "select '-1' as id, '-1' as pk, '-1' as code, '所有分公司' as name from dual" +
+		String script = "select '-1' as id, -1 as pk, '-1' as code, '所有分公司' as name from dual" +
 				" union all " +
 				"select t.name as id, t.id as pk, t.code as code, t.name as name from gtv_org_golden t where t.parent_id=5555";
 		SQLExcutor excutor = new SQLExcutor(false);
@@ -70,7 +70,7 @@ public class BaseServiceImpl implements BaseService {
 	
 	@SuppressWarnings("unchecked")
 	public List<Map<String, Object>> getCenterList(String org) {
-		String script = "select '-1' as id, '-1' as pk, '-1' as code, '所有分拨' as name from dual" +
+		String script = "select '-1' as id, -1 as pk, '-1' as code, '所有分拨' as name from dual" +
 				" union all " +
 				" select t.name as id, t.id as pk, t.code as code, t.name as name from gt_site t " +
 				" where type_code = '01' and status = 'ENABLE'  and org_name = '" + org + "' ";
@@ -90,7 +90,7 @@ public class BaseServiceImpl implements BaseService {
 	}
 	
 	public List<Map<String, Object>> getAllCenterList() {
-		String script = "select '-1' as id, '-1' as pk, '-1' as code, '所有分拨' as name from dual" +
+		String script = "select '-1' as id, -1 as pk, '-1' as code, '所有分拨' as name from dual" +
 				" union all " +
 				" select t.name as id, t.id as pk, t.code as code, t.name as name from gt_site t " +
 				" where type_code = '01' and status = 'ENABLE' ";
