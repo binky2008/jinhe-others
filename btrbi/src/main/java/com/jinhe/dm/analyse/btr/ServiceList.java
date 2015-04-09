@@ -2,11 +2,15 @@ package com.jinhe.dm.analyse.btr;
 
 import java.util.List;
 
+import javax.servlet.http.HttpSession;
+
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.jinhe.tss.framework.sso.context.Context;
 
 @Controller
 @RequestMapping("/service")
@@ -37,12 +41,18 @@ public class ServiceList {
 	@RequestMapping("/self/centers")
 	@ResponseBody
 	public List<?> getSelfCenterList() {
-		List<String> fatherGroups = _BTRHelper.getFatherGroups();
+		List<String> fatherGroups = getFatherGroups();
 		if(fatherGroups != null && fatherGroups.size() >= 2) { // 分公司或分拨员工，只能看到其所在（分公司）的分拨
 			String org = fatherGroups.get(1);
 			return baseService.getCenterList(org);
 		}
 		
 		return baseService.getAllCenterList();
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static List<String> getFatherGroups() {
+		HttpSession session = Context.getRequestContext().getSession();
+		return (List<String>) session.getAttribute(BTRAfterLoginCustomizer.USER_GROUPS_NAME);
 	}
 }

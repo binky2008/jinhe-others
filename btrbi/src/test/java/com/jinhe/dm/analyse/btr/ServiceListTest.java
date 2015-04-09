@@ -17,8 +17,6 @@ public class ServiceListTest {
 	
 	@Test
 	public void testServiceList() {
-		baseService.login("BL01037", "jonking");
-		
 		HttpSession session = Context.getRequestContext().getSession();
         
 		session.setAttribute(BTRAfterLoginCustomizer.USER_GROUPS_NAME, Arrays.asList( "百世快运".split(",") ));

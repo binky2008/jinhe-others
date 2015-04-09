@@ -5,8 +5,6 @@ import java.util.Map;
 
 public interface BaseService {
  
-	boolean login(String loginName, String password);
-	
 	/**
 	 * 读取登录用户有权限看到的分公司
 	 */
