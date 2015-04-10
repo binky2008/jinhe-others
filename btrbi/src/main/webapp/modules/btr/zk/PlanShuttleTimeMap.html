@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>规划班车时刻表</title>
+
+    <link rel="stylesheet" type="text/css" href="../../dm/common.css">
+    <link href="../../tools/bootstrap/css/buttons.css" rel="stylesheet">
+    <link href="../../tools/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../../tools/bootstrap/datatable/jquery.dataTables.min.css" rel="stylesheet">
+
+    <script src="../../tools/jquery/jquery-2.1.3.min.js"></script>
+    <script src="../../tools/bootstrap/js/bootstrap.min.js"></script>
+    <script src="../../tools/echarts-2.0.4/echarts-plain-map.js"></script>
+    <script src="../zk/CityLocation.js"></script>
+
+    <script src="../../framework/core.js"></script>
+    <script src="../../framework/ajax.js"></script>
+    <script src="../../dm/common.js"></script>
+
+    <script type="text/javascript">
+    var globalValiable = window.parent.globalValiable,
+        CenterList = [],type = 0;
+
+    window.onload = function() {
+        var originData = globalValiable.data,
+            queryParams = globalValiable.queryParams,
+            List = document.getElementById("CenterList"),
+            List2 = document.getElementById("CenterList2"),
+            MyMap = document.getElementById('Map');
+        MyMap.style.height = (screen.height - 235) + 'px';
+
+        for(var i = 0; i < originData.length; i++){
+            var center;
+            if(queryParams.param2 == '0'){
+                center = originData[i]["center_in"];
+            }
+            else{
+                center = originData[i]["center_out"];
+                type = 1;
+            }
+            
+            if(!CenterList.contains(center)){
+                CenterList.push(center);     
+            }
+        }
+
+        List.options.add(new Option('请选择分拨','请选择分拨'));
+        List2.options.add(new Option('全部','全部'));
+        CenterList.sort();
+        for(var i = 0; i < CenterList.length; i++){
+            List.options.add(new Option(CenterList[i],CenterList[i]));
+            List2.options.add(new Option(CenterList[i] + '分拨',CenterList[i] + '分拨'));
+        }
+
+        Table();
+        $("#Tab1").click();
+    }  
+
+    function Table(){
+        var originData = globalValiable.data,
+            table = document.getElementById("Table"),
+            selected = document.getElementById('CenterList2').value;
+
+        table.innerHTML = '';
+        var h = table.createTHead().insertRow();
+        var td = h.insertCell(0);
+        td.innerText = '路线';
+        td.style.color = '#337AB7';
+        var td = h.insertCell(1);  
+        td.innerText = '起始分拨';
+        td.style.color = '#337AB7';
+        var td = h.insertCell(2);    
+        td.innerText = '目的分拨';
+        td.style.color = '#337AB7';
+        var td = h.insertCell(3);   
+        td.innerText = '计划发车时间';
+        td.style.color = '#337AB7';
+        var td = h.insertCell(4);   
+        td.innerText = '计划到达时间';
+        td.style.color = '#337AB7';
+        var td = h.insertCell(5);  
+        td.innerText = '车牌号';
+        td.style.color = '#337AB7';
+        var td = h.insertCell(6);  
+        td.innerText = '备注';
+        td.style.color = '#337AB7';
+
+        for(var i = 0; i < originData.length; i++){
+            var cout = originData[i]["center_out"] + '分拨',
+                cin = originData[i]["center_in"] + '分拨',
+                plate = originData[i]["license_plate"],
+                route = originData[i]["route_name"],
+                plan = originData[i]["plan_time"],
+                plan2 = originData[i]["plan_time2"],
+                job_type = originData[i]["rsjob_type"],
+                tr = table.insertRow();
+
+            if((selected == '全部')||(selected == (type?cout:cin))){
+                var td = tr.insertCell(0);  
+                td.innerText = route;
+                var td = tr.insertCell(1);  
+                td.innerText = cin;
+                var td = tr.insertCell(2);    
+                td.innerText = cout;
+                var td = tr.insertCell(3);   
+                td.innerText = plan;
+                var td = tr.insertCell(4);  
+                td.innerText = plan2;
+                var td = tr.insertCell(5);  
+                td.innerText = plate;
+                var td = tr.insertCell(6);
+                td.innerText = job_type;
+            }
+        }
+    }
+
+    function Map(){
+        var originData = globalValiable.data,
+            selected = document.getElementById('CenterList').value;
+            datar = [],datapoint = [],cList = [],data = [],
+            v = true,geoCoord = CityLocation();
+
+        for(var i = 0; i < originData.length; i++){
+            var center = type?originData[i]["center_out"]:originData[i]["center_in"];
+            if(center == selected){
+                var cin = originData[i]["center_in"],
+                    out = originData[i]["center_out"],
+                    plate = originData[i]["license_plate"],
+                    route = originData[i]["route_name"],
+                    plan = originData[i]["plan_time"],
+                    plan2 = originData[i]["plan_time2"];
+
+                if(v){
+                    datapoint.push({name:center,value:center});
+                    v = false;
+                }
+
+                if(type){
+                    if(!cList.contains(cin)){
+                        cList.push(cin);
+                        datapoint.push({name:cin,value:cin});
+                        datar.push([{name:cin},{name:center}]);
+                        data[cin + center] = [];
+                    }
+                    data[cin + center].push('>' + plate + '(' + route + ')' + '</br>' + plan + '~' + plan2);
+                }
+                else{
+                    if(!cList.contains(out)){
+                        cList.push(out);
+                        datapoint.push({name:out,value:out});
+                        datar.push([{name:center},{name:out}]);
+                        data[center + out] = [];
+                    }
+                    data[center + out].push('>' + plate + '(' + route + ')' + '</br>' + plan + '~' + plan2);
+                }
+            }
+        }
+
+        var series = [{
+            name: '全国',
+            type: 'map',
+            roam: true,
+            hoverable: false,
+            mapType: 'china',
+            itemStyle:{
+                normal:{
+                    borderColor:'rgba(0,138,186,0.9)',
+                    borderWidth:1,
+                    areaStyle:{
+                        color: '#262126'
+                    }
+                }
+            },
+            data:[],
+            markLine : {
+                smooth:true,
+                symbol: ['none', 'circle'],  
+                symbolSize : 1,
+                itemStyle : {
+                    normal: {
+                        color:'#fff',
+                        borderWidth:1,
+                        borderColor:'rgba(30,144,255,0.5)'
+                    }
+                },
+                data : [],
+            },
+            geoCoord: geoCoord
+        }];
+        series.push({
+            name: 'A',
+            type: 'map',
+            mapType: 'china',
+            data:[],
+            markLine : {
+                smooth:true,
+                effect : {
+                    show: true,
+                    scaleSize: 1,
+                    period: 30,
+                    color: '#fff',
+                    shadowBlur: 10
+                },
+                itemStyle : {
+                    normal: {
+                        borderWidth:1,
+                        color:'#FFEF51',
+                        lineStyle: {
+                            type: 'solid',
+                            shadowBlur: 10
+                        }
+                    },
+                    emphasis:{
+                        color:'#FFEF51',
+                        borderWidth:8
+                    }
+                },
+                data : datar
+            },
+            markPoint : {
+                symbol:'emptyCircle',
+                symbolSize :10,
+                effect : {
+                    show:false,
+                    shadowBlur : 0
+                },
+                itemStyle:{
+                normal:{
+                    color:'#7E6071',
+                    label:{
+                        show:true,
+                        textStyle:{
+                            fontSize:'14',
+                            fontFamily:'Microsoft YaHei',
+                            color:'#fff8dc'
+                        }
+                    }
+                },
+                emphasis:{
+                    color:'#fff8dc',
+                    label:{
+                        show:false
+                    }
+                }
+            },
+                data : datapoint
+            }
+        });
+
+        var myChart = echarts.init(document.getElementById('Map'));
+
+var option = {
+    backgroundColor: '#262126',
+    tooltip : {
+        textStyle:{color:'#E8C446',fontSize:'14',fontFamily:'Microsoft YaHei'},
+        trigger: 'item',
+        formatter: function (v) {
+            if(v[0].indexOf('A') >= 0){
+                var str = v[1],r = v[1].replace(' > ','');
+      
+                for(var i = 0;i < data[r].length;i++){
+                    str += '</br>' + data[r][i];
+                }
+
+                return str;
+            }
+            else{
+                return v[1];
+            }
+        }
+    },
+    series : series
+};         
+        myChart.setOption(option);
+    }
+
+    </script>
+
+    <style type="text/css">
+        img {max-height: 100%;}
+        dt {font-family:Microsoft YaHei;font-size:20px;}
+        dd {font-family:Microsoft YaHei;font-size:16px;text-indent:30px}
+        li {font-family:Microsoft YaHei;}
+        th {
+            color:#999;
+            font-family:Microsoft YaHei;
+            font-style:normal;
+        }
+        td{font-family:Microsoft YaHei;}
+        span {width:16px;height:16px;}
+        .modal-title{font-family:Microsoft YaHei;color:#337AB7;}
+        .panel-heading {font-family:Microsoft YaHei;}
+        .table-hover{margin-top: 15px;}
+        .btn {font-family:Microsoft YaHei;}
+        .copybtn {
+            font-family:Microsoft YaHei;
+            width:140px;
+            margin-top: 3px;
+        }
+        .Tab {font-family:Microsoft YaHei;}
+        .navcustom{
+            font-family:Microsoft YaHei;
+            text-align: center;
+            color:#337AB7;
+            width: 140px;
+            margin-top: 5px;
+            margin-left: 15px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.067);
+        }
+        #CenterList {
+            font-family:Microsoft YaHei;
+            font-size:16px;
+            float:right;
+            padding:3px;
+            color:#fff8dc;
+            display:inline-block;
+            border-color:#999;
+            background-color:#262126;
+            text-align:right;
+            margin-top: 1px;
+        }
+        #CenterList2 {
+            font-family:Microsoft YaHei;
+            font-size:16px;
+            float:right;
+            padding:3px;
+            color:#337AB7;
+            display:inline-block;
+            border-color:#999;
+            background-color:#fff;
+            text-align:right;
+            margin-top: 1px;
+        }
+        #CenterList option:hover { 
+            background-color: #f80; 
+            color: #fff; 
+        }
+        #CenterList2 option:hover { 
+            background-color: #fff; 
+            color: #999; 
+        }
+/*//////////////////////////////////////Bootstrap Style*/
+        .navcustom li{
+            margin: 0;
+            border-top: 1px solid #ddd;
+        }
+        .navcustom li:first-child{
+            border-top: none;
+        }
+        .navcustom li a{
+            margin: 0;
+            padding: 8px 16px;
+            border-radius: 0;
+        }
+        .navcustom li.active a, ul.nav-tabs li.active a:hover{
+            color: #fff;
+            background: #0088cc;
+            border: 1px solid #0088cc;
+        }
+        .navcustom li:first-child a{
+            border-radius: 4px 4px 0 0;
+        }
+        .navcustom li:last-child a{
+            border-radius: 0 0 4px 4px;
+        }
+        .navcustom.affix{
+            top: 30px; /* Set the top position of pinned element */
+        }
+    </style>
+</head>
+
+<body>
+<ul id="myTab" class="nav nav-tabs">
+    <li class="Tab"><a href="#TabTable" data-toggle="tab">表单</a></li>
+    <li class="Tab"><a id='Tab1' href="#TabMap" data-toggle="tab">地图</a></li>
+</ul> 
+<div class="tab-content">
+    <div id="TabMap" class="tab-pane fade" style="background:#262126">
+        <select id="CenterList" onchange="Map()"></select>
+        <div id="Map" style="height:640px;"></div>
+    </div>
+    <div id="TabTable" class="tab-pane fade">
+        <select id="CenterList2" onchange="Table()"></select>
+        <table id="Table" class="table table-hover">
+        </table>
+    </div>
+</div>
+</body>
+</html>

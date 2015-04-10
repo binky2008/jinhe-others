@@ -22,15 +22,18 @@
             queryParams = globalValiable.queryParams;
 
             if(queryParams.param3 == undefined){
-                show(globalValiable.data);
+                show(globalValiable.data,true,true);
+            }
+            else if(queryParams.param3.indexOf('公司') >= 0){
+                show(globalValiable.data,false,true);
             }
             else{
-                //show(globalValiable.data,'总计');
+            	show(globalValiable.data,false,false);
             }
             return;
         }
     } 
-	function show(originData){ 
+	function show(originData,Net,Org){ 
 		var CenterList = [],CompanyList = [],TCenterList = [],
 			PlateList = [],Relate = [],DayList = [],MyData = [],
 			cHtml = [],RowNo = 1,data = {rows:[],footer:[]};
@@ -64,7 +67,7 @@
 				Relate[RouteCenter] = center_in;
 				MyData[RouteCenter] = [];
 			}
-			RoutePlate = center_in + '>' + plate;
+			RoutePlate = center_in + center_out + '>' + plate;
 			if(!PlateList.contains(RoutePlate)){
 				PlateList.push(RoutePlate);
 				Relate[RoutePlate] = RouteCenter;
@@ -182,20 +185,24 @@
 		}	
 
 		//////////////////制表数据
-		var temp = MyData['全网'];
-        temp.name = '全网';
-        data.footer.push(temp);
+		if(Net){
+			var temp = MyData['全网'];
+	        temp.name = '全网';
+	        data.footer.push(temp);
+	    }
 
 		for(var o in CompanyList){
 			var org = CompanyList[o];
 			if(o != 'contains'){
-				var temp = MyData[org];
-                    pre_id = RowNo;
+				if(Org){
+					var temp = MyData[org];
+	                    pre_id = RowNo;
 
-                temp.name = org;
-                temp.id = RowNo++;
-                temp.state = 'closed';
-                data.rows.push(temp);
+	                temp.name = org;
+	                temp.id = RowNo++;
+	                temp.state = 'closed';
+	                data.rows.push(temp);
+	            }
 
                 for(var c in CenterList){
                 	var cen = CenterList[c];
@@ -206,7 +213,7 @@
                         temp.name = cen;
                         temp.id = RowNo++;
                 		temp.state = 'closed';
-                        temp._parentId = pre_id;
+                        if(Org){temp._parentId = pre_id;}
                         data.rows.push(temp);
 
                         for(var tc in TCenterList){

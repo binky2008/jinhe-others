@@ -47,20 +47,12 @@ var option = {
         axisPointer:{type : 'none'},
         textStyle:{fontSize:'16',color:'#fff',fontFamily:'Microsoft YaHei'},
         formatter:function(d){
-            console.log(d);
-            var l = d.length,
-                result = d[0][1];
-
-            for(var i = 0;i < d.length;i++){
-                if(d[i][2] != '-'){
-                    result += '<br/>' + d[i][0] + ':' + d[i][2] + '%';
-                }
-                else{
-                    result += '<br/>' + d[i][0] + ':' + '-';
-                }
+            if(d[0][2] != '-'){
+                return d[0][1].substr(d[0][1].indexOf('-') + 1) + '</br>' + d[0][2] + '%';
             }
-
-            return result;
+            else{
+                return d[0][1].substr(d[0][1].indexOf('-') + 1) + '</br>' + '-';
+            }
         }
     },
     calculable : true,
@@ -105,14 +97,25 @@ var option = {
                 }
             },
             markPoint : {
+                symbol:"heart",
                 data : [
-                    {type : 'max', name: '最大值'},
-                    {type : 'min', name: '最小值'}
+                    {type : 'max', name: '最大值'}
                 ],
                 itemStyle:{
                     normal : {
                         color:'#337AB7'
-                    }
+                    },
+                    emphasis: {
+                    color: '#F39B9C',
+                    label : {
+                        show: true,
+                        position: 'inside',
+                        textStyle : {
+                            color:'#000',
+                            fontSize : '14'
+                        }
+                    }                
+                }
                 }
             }
         }

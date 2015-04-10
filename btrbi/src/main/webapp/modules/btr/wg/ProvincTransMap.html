@@ -31,9 +31,9 @@
             pie = document.getElementById('Pie');
 
         map.style.height = (screen.height - 265) + 'px';
-        map.style.width = screen.height + 'px';
+        map.style.width = (screen.width - 18) + 'px';
         pie.style.height = (screen.height - 265) + 'px';
-        pie.style.width = screen.height + 'px';
+        pie.style.width = (screen.width -18) + 'px';
 
 
 
@@ -54,54 +54,37 @@
 
 option = {
     title : {
-        text: '某站点用户访问来源',
-        subtext: '纯属虚构',
-        x:'center'
+        text: '全网货量占比',
+        textStyle:{fontSize:'24',fontFamily:'Microsoft YaHei'},
+        subtext: subtitle,
+        subtextStyle:{fontSize:'18',color: '#999999',fontFamily:'Microsoft YaHei'},
+        x:'left'
     },
     tooltip : {
         trigger: 'item',
-        formatter: "{a} <br/>{b} : {c} ({d}%)"
-    },
-    legend: {
-        orient : 'vertical',
-        x : 'left',
-        data:['直接访问','邮件营销','联盟广告','视频广告','搜索引擎']
-    },
-    toolbox: {
-        show : true,
-        feature : {
-            mark : {show: true},
-            dataView : {show: true, readOnly: false},
-            magicType : {
-                show: true, 
-                type: ['pie', 'funnel'],
-                option: {
-                    funnel: {
-                        x: '25%',
-                        width: '50%',
-                        funnelAlign: 'left',
-                        max: 1548
-                    }
-                }
-            },
-            restore : {show: true},
-            saveAsImage : {show: true}
-        }
+        textStyle:{fontSize:'16',fontFamily:'Microsoft YaHei'},
+        formatter: "{b}:{d}%<br/>{c} "
     },
     calculable : true,
     series : [
         {
-            name:'访问来源',
+            name:'A',
             type:'pie',
-            radius : '55%',
+            radius : '70%',
             center: ['50%', '60%'],
-            data:[
-                {value:335, name:'直接访问'},
-                {value:310, name:'邮件营销'},
-                {value:234, name:'联盟广告'},
-                {value:135, name:'视频广告'},
-                {value:1548, name:'搜索引擎'}
-            ]
+            data:data,
+            itemStyle:{
+                normal:{label:{
+                        show:true,
+                        textStyle:{fontSize:'14',fontFamily:'Microsoft YaHei'}
+                    }
+                },
+                emphasis:{label:{
+                        show:true,
+                        textStyle:{fontSize:'14',fontFamily:'Microsoft YaHei'}
+                    }
+                }
+            }
         }
     ]
 };  
@@ -127,10 +110,15 @@ var option = {
         textStyle:{fontSize:'24',fontFamily:'Microsoft YaHei'},
         subtext: subtitle,
         subtextStyle:{fontSize:'18',color: '#999999',fontFamily:'Microsoft YaHei'},
-        x:'center'
+        x:'left'
     },
     tooltip : {
-        trigger: 'item'
+        trigger: 'item',
+        textStyle:{fontSize:'16',fontFamily:'Microsoft YaHei'},
+        formatter: function (v) {
+            if(v[0] == 'A '){return v[1] + '</br>' + v[2];}
+            else{return v[1];}
+        }
     },
     dataRange: {
         min: 0,
@@ -143,13 +131,21 @@ var option = {
     },
     series : [
         {
-            name:'业务量',
+            name:'A',
             type: 'map',
             mapType: 'china',
             roam: false,
             itemStyle:{
-                normal:{label:{show:true}},
-                emphasis:{label:{show:true}}
+                normal:{label:{
+                        show:true,
+                        textStyle:{fontSize:'14',fontFamily:'Microsoft YaHei'}
+                    }
+                },
+                emphasis:{label:{
+                        show:true,
+                        textStyle:{fontSize:'14',fontFamily:'Microsoft YaHei'}
+                    }
+                }
             },
             data:data
         }
@@ -160,11 +156,11 @@ var option = {
     </script>
 
     <style type="text/css">
+        li {font-family:Microsoft YaHei;}
         .painting {
-           
             font-family:Microsoft YaHei;
             font-size:14px;
-
+            width:100px;
             background:#92B901; 
             color:#ffffff;
             border-radius:5px;
@@ -200,17 +196,17 @@ var option = {
 </head>
 
 <body>
-<ul id="myTab" class="nav nav-tabs">
-    <li class="Tab"><a id='Tab1' href="#TabMap" data-toggle="tab">地图</a></li>
-    <li class="Tab"><a href="#TabPie" data-toggle="tab">饼图</a></li>
-</ul> 
-<div class="tab-content">
-    <div id="TabMap" class="tab-pane fade">
-        <div id="Map" class='painting' style="height:640px;"></div>
+    <ul id="myTab" class="nav nav-tabs">
+        <li class="Tab"><a id='Tab1' href="#TabMap" data-toggle="tab">地图</a></li>
+        <li class="Tab"><a href="#TabPie" data-toggle="tab">饼图</a></li>
+    </ul> 
+    <div class="tab-content">
+        <div id="TabMap" class="tab-pane fade">
+            <div id='Map' style="height:640px;"></div>
+        </div>
+        <div id="TabPie" class="tab-pane fade">
+            <div id='Pie' style="height:640px;"></div>
+        </div>
     </div>
-    <div id="TabPie" class="tab-pane fade">
-        <div id="Pie" class='painting' style="height:640px;"></div>
-    </div>
-</div>
 </body>
 </html>

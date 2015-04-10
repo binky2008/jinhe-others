@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>订单子集方向地图</title>
+
+    <link rel="stylesheet" type="text/css" href="../../dm/common.css">
+    <link href="../../tools/bootstrap/css/buttons.css" rel="stylesheet">
+    <link href="../../tools/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../../tools/bootstrap/datatable/jquery.dataTables.min.css" rel="stylesheet">
+
+    <script src="../../tools/jquery/jquery-2.1.3.min.js"></script>
+    <script src="../../tools/bootstrap/js/bootstrap.min.js"></script>
+    <script src="../../tools/echarts-2.0.4/echarts-plain-map.js"></script>
+    <script src="../zk/CityLocation.js"></script>
+
+    <script src="../../framework/core.js"></script>
+    <script src="../../framework/ajax.js"></script>
+    <script src="../../dm/common.js"></script>
+
+    <script type="text/javascript">
+    var globalValiable = window.parent.globalValiable,
+        CenterList = [];
+
+    window.onload = function() {
+        var originData = globalValiable.data,
+            List = document.getElementById("CenterList"),
+            List2 = document.getElementById("CenterList2"),
+            List3 = document.getElementById("CenterList3"),
+            List4 = document.getElementById("CenterList4"),
+            MyMap = document.getElementById('Map'),
+            bList = [],eList = [];
+        MyMap.style.height = (screen.height - 235) + 'px';
+
+        List3.options.add(new Option('全部','全部'));
+        List4.options.add(new Option('全部','全部'));
+        for(var i = 0; i < originData.length; i++){
+            var center = originData[i]["site_name"],
+                begin_pos = originData[i]["begin_pos"],
+                end_pos = originData[i]["end_pos"];
+
+            if(!CenterList.contains(center)){
+                CenterList.push(center);     
+            }
+            if(!bList.contains(begin_pos)){
+                bList.push(begin_pos);
+                List3.options.add(new Option(begin_pos,begin_pos));
+            }
+            if(!eList.contains(end_pos)){
+                eList.push(end_pos);
+                List4.options.add(new Option(end_pos,end_pos));
+            }
+        }
+
+        List.options.add(new Option('请选择下一站','请选择下一站'));
+        List2.options.add(new Option('全部','全部'));
+        CenterList.sort();
+        for(var i = 0; i < CenterList.length; i++){
+            List.options.add(new Option(CenterList[i],CenterList[i]));
+            List2.options.add(new Option(CenterList[i],CenterList[i]));
+        }
+
+        Table();
+        $("#Tab1").click();
+    }  
+
+    function Table(){
+        var originData = globalValiable.data,
+            table = document.getElementById("Table"),
+            center = originData[0]["scan_site_name"],
+            selected = document.getElementById('CenterList2').value,
+            begins = document.getElementById('CenterList3').value,
+            ends = document.getElementById('CenterList4').value,
+            SumW = 0;
+
+        table.innerHTML = '';
+        var h = table.createTHead().insertRow();
+        var td = h.insertCell(0);
+        td.innerText = '起始分拨';
+        td.style.color = '#337AB7';
+        var td = h.insertCell(1);  
+        td.innerText = '扫描分拨';
+        td.style.color = '#337AB7';
+        var td = h.insertCell(2);    
+        td.innerText = '下一站';
+        td.style.color = '#337AB7';
+        var td = h.insertCell(3);   
+        td.innerText = '目的分拨';
+        td.style.color = '#337AB7';
+        var td = h.insertCell(4);  
+        td.innerText = '重量';
+        td.style.color = '#337AB7';
+
+        for(var i = 0; i < originData.length; i++){
+            var next_pos = originData[i]["site_name"],
+                begin_pos = originData[i]["begin_pos"],
+                end_pos = originData[i]["end_pos"],
+                w = originData[i]["weight"];
+
+            if(((selected == '全部')||(selected == next_pos))&&((begins == '全部')||(begins == begin_pos))&&((ends == '全部')||(ends == end_pos))){
+                var tr = table.insertRow();
+                var td = tr.insertCell(0);  
+                td.innerText = begin_pos;
+                var td = tr.insertCell(1);  
+                td.innerText = center;
+                var td = tr.insertCell(2);    
+                td.innerText = next_pos;
+                var td = tr.insertCell(3);   
+                td.innerText = end_pos;
+                var td = tr.insertCell(4);  
+                td.innerText = w;
+                SumW += w;
+            }
+        }
+
+        var tr = table.insertRow();
+        var td = tr.insertCell(0);  
+        td.innerText = '总计';
+        td.style.color = '#337AB7';
+        var td = tr.insertCell(1);  
+        var td = tr.insertCell(2);    
+        var td = tr.insertCell(3);   
+        var td = tr.insertCell(4);  
+        td.innerText = Math.round(SumW,0);
+        td.style.color = '#337AB7';
+    }
+
+    function Map(){
+        var originData = globalValiable.data,
+            selected = document.getElementById('CenterList').value.replace('分拨',''),
+            datar = [[],[],[]],datapoint = [[],[],[]],v = true,
+            InData = [],OutData = [],PassData = [],RouteData = [],
+            center = originData[0]["scan_site_name"].replace('分拨',''),
+            ColorList = ['#FFEF51','#00FF12','#FF259F'],
+            WidthList = [1,1,3],geoCoord = CityLocation();
+
+        for(var i = 0; i < originData.length; i++){
+            var next_pos = originData[i]["site_name"].replace('分拨','');
+            if(next_pos == selected){
+                var begin_pos = originData[i]["begin_pos"].replace('分拨',''),
+                    end_pos = originData[i]["end_pos"].replace('分拨',''),
+                    w = originData[i]["weight"],
+                    pass_pos = originData[i]["begin_pos"].replace('分拨','') + '→' +  end_pos;
+
+                if(v){
+                    v = false;
+                    datapoint[2].push({name:center,value:center});
+                    datar[2].push([{name:center},{name:next_pos,value:w}]);
+                }
+                if(InData[begin_pos] == undefined){
+                    InData[begin_pos] =[];
+                    datapoint[0].push({name:begin_pos,value:begin_pos});
+                    datar[0].push([{name:begin_pos},{name:center,value:w}]);
+                }
+                if(InData[begin_pos][end_pos] == undefined){
+                    InData[begin_pos][end_pos] = w;
+                }
+                else{
+                    InData[begin_pos][end_pos] += w;
+                }
+                if(OutData[end_pos] == undefined){
+                    OutData[end_pos] =[];
+                    datapoint[1].push({name:end_pos,value:end_pos});        
+                    datar[1].push([{name:next_pos},{name:end_pos,value:w}]);
+                }
+                if(OutData[end_pos][begin_pos] == undefined){
+                    OutData[end_pos][begin_pos] = w;
+                }
+                else{
+                    OutData[end_pos][begin_pos] += w;
+                }
+                if(PassData[pass_pos] == undefined){
+                    PassData[pass_pos] = w;
+                }
+                else{
+                    PassData[pass_pos] += w;
+                }
+                if(RouteData[begin_pos] == undefined){
+                    RouteData[begin_pos] = [];
+                }
+                if(RouteData[center] == undefined){
+                    RouteData[center] = [];
+                }
+                if(RouteData[next_pos] == undefined){
+                    RouteData[next_pos] = [];
+                }
+                if(RouteData[begin_pos][center] == undefined){
+                    RouteData[begin_pos][center] = w;
+                }
+                else{
+                    RouteData[begin_pos][center] += w;
+                }
+                if(RouteData[center][next_pos] == undefined){
+                    RouteData[center][next_pos] = w;
+                }
+                else{
+                    RouteData[center][next_pos] += w;
+                }
+                if(RouteData[next_pos][end_pos] == undefined){
+                    RouteData[next_pos][end_pos] = w;
+                }
+                else{
+                    RouteData[next_pos][end_pos] += w;
+                }
+            }
+        }
+
+        var series = [{
+            name: '全国',
+            type: 'map',
+            roam: true,
+            hoverable: false,
+            mapType: 'china',
+            itemStyle:{
+                normal:{
+                    borderColor:'rgba(0,138,186,0.9)',
+                    borderWidth:1,
+                    areaStyle:{
+                        color: '#262126'
+                    }
+                }
+            },
+            data:[],
+            markLine : {
+                smooth:true,
+                symbol: ['none', 'circle'],  
+                symbolSize : 1,
+                itemStyle : {
+                    normal: {
+                        color:'#fff',
+                        borderWidth:1,
+                        borderColor:'rgba(30,144,255,0.5)'
+                    }
+                },
+                data : [],
+            },
+            geoCoord: geoCoord
+        }];
+        for(var i = 0;i < 3;i++){
+            series.push({
+                name: 'Level:' + (i + 1),
+                type: 'map',
+                mapType: 'china',
+                data:[],
+                markLine : {
+                    smooth:true,
+                    effect : {
+                        show: true,
+                        scaleSize: 1,
+                        period: 30,
+                        color: '#fff',
+                        shadowBlur: 10
+                    },
+                    itemStyle : {
+                        normal: {
+                            borderWidth:WidthList[i],
+                            color:ColorList[i],
+                            lineStyle: {
+                                type: 'solid',
+                                shadowBlur: 10
+                            }
+                        },
+                        emphasis:{
+                            color:ColorList[i],
+                            borderWidth:8
+                        }
+                    },
+                    data : datar[i]
+                },
+                markPoint : {
+                    symbol:'emptyCircle',
+                    symbolSize :10,
+                    effect : {
+                        show:false,
+                        shadowBlur : 0
+                    },
+                    itemStyle:{
+                    normal:{
+                        color:'#7E6071',
+                        label:{
+                            show:true,
+                            textStyle:{
+                                fontSize:'14',
+                                fontFamily:'Microsoft YaHei',
+                                color:'#fff8dc'
+                            }
+                        }
+                    },
+                    emphasis:{
+                        color:'#fff8dc',
+                        label:{
+                            show:false
+                        }
+                    }
+                },
+                    data : datapoint[i]
+                }
+            });
+        }
+
+        var myChart = echarts.init(document.getElementById('Map'));
+
+var option = {
+    backgroundColor: '#262126',
+    tooltip : {
+        textStyle:{color:'#E8C446',fontSize:'14',fontFamily:'Microsoft YaHei'},
+        trigger: 'item',
+        formatter: function (v) {
+            if(v[1].indexOf('>') >= 0){
+                var c = v[1].substr(0,v[1].indexOf(' ')),
+                    d = v[1].substr(v[1].indexOf('>') + 2,v[1].length - v[1].indexOf('>') - 1);
+
+                return c + '→' + d + ':' + RouteData[c][d];
+            }
+            else{
+                if((v[0] == 'Level:1')||(v[0] == 'Level:2')){
+                    var c = v[1],t = '',p ='',str = '';
+
+                    for(var d in InData[c]){
+                        if(d != 'contains'){
+                             t += '</br>' + c + '→' + d + ':' + InData[c][d];
+                        }
+                    }
+                    if(t != ''){
+                        str += c + '>>>出' + t;
+                    }
+
+                    for(var d in OutData[c]){
+                        if(d != 'contains'){
+                             p += '</br>' + d + '→' + c + ':' + OutData[c][d];
+                        }
+                    }
+                    if(p != ''){
+                        if(t != ''){
+                            str += '</br>';
+                        }
+                        str += c + '<<<入' + p;
+                    }
+
+                    return str;
+                }
+                else if(v[0] == 'Level:3'){
+                    var str = center;
+                    for(var d in PassData){
+                        if(d != 'contains'){
+                            str += '</br>' + d + ':' + PassData[d];
+                        }
+                    }
+                    return str;
+                }
+                else{
+                    return v[1];
+                }             
+            }
+        }
+    },
+    series : series
+};         
+        myChart.setOption(option);
+    }
+
+    </script>
+
+    <style type="text/css">
+        img {max-height: 100%;}
+        dt {font-family:Microsoft YaHei;font-size:20px;}
+        dd {font-family:Microsoft YaHei;font-size:16px;text-indent:30px}
+        li {font-family:Microsoft YaHei;}
+        th {
+            color:#999;
+            font-family:Microsoft YaHei;
+            font-style:normal;
+        }
+        td{font-family:Microsoft YaHei;}
+        span {width:16px;height:16px;}
+        .modal-title{font-family:Microsoft YaHei;color:#337AB7;}
+        .panel-heading {font-family:Microsoft YaHei;}
+        .table-hover{margin-top: 15px;}
+        .btn {font-family:Microsoft YaHei;}
+        .copybtn {
+            font-family:Microsoft YaHei;
+            width:140px;
+            margin-top: 3px;
+        }
+        .Tab {font-family:Microsoft YaHei;}
+        .rightfloatclass{
+            font-family:Microsoft YaHei;
+            float:right;
+            font-size:16px;
+        }
+        .navcustom{
+            font-family:Microsoft YaHei;
+            text-align: center;
+            color:#337AB7;
+            width: 140px;
+            margin-top: 5px;
+            margin-left: 15px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.067);
+        }
+        #CenterList {
+            font-family:Microsoft YaHei;
+            font-size:16px;
+            float:right;
+            padding:3px;
+            color:#fff8dc;
+            display:inline-block;
+            border-color:#999;
+            background-color:#262126;
+            text-align:right;
+            margin-top: 1px;
+        }
+        #CenterList option:hover { 
+            background-color: #f80; 
+            color: #fff; 
+        }
+        .tablelist {
+            font-family:Microsoft YaHei;
+            font-size:16px;
+            padding:3px;
+            color:#337AB7;
+            display:inline-block;
+            border-color:#999;
+            background-color:#fff;
+            text-align:right;
+            margin-top: 1px;
+        }
+        .tablelist option:hover { 
+            background-color: #fff; 
+            color: #999; 
+        }
+/*//////////////////////////////////////Bootstrap Style*/
+        .navcustom li{
+            margin: 0;
+            border-top: 1px solid #ddd;
+        }
+        .navcustom li:first-child{
+            border-top: none;
+        }
+        .navcustom li a{
+            margin: 0;
+            padding: 8px 16px;
+            border-radius: 0;
+        }
+        .navcustom li.active a, ul.nav-tabs li.active a:hover{
+            color: #fff;
+            background: #0088cc;
+            border: 1px solid #0088cc;
+        }
+        .navcustom li:first-child a{
+            border-radius: 4px 4px 0 0;
+        }
+        .navcustom li:last-child a{
+            border-radius: 0 0 4px 4px;
+        }
+        .navcustom.affix{
+            top: 30px; /* Set the top position of pinned element */
+        }
+    </style>
+</head>
+
+<body>
+<ul id="myTab" class="nav nav-tabs">
+    <li class="Tab"><a href="#TabTable" data-toggle="tab">表单</a></li>
+    <li class="Tab"><a id='Tab1' href="#TabMap" data-toggle="tab">地图</a></li>
+</ul> 
+<div class="tab-content">
+    <div id="TabMap" class="tab-pane fade" style="background:#262126">
+        <select id="CenterList" onchange="Map()"></select>
+        <div id="Map" style="height:640px;"></div>
+    </div>
+    <div id="TabTable" class="tab-pane fade">
+        <div class="rightfloatclass">
+            起始分拨：<select id="CenterList3" class="tablelist" onchange="Table()"></select>
+            下一站：<select id="CenterList2" class="tablelist" onchange="Table()"></select>
+            目的分拨：<select id="CenterList4" class="tablelist" onchange="Table()"></select>
+        </div>
+        <table id="Table" class="table table-hover">
+        </table>
+    </div>
+</div>
+</body>
+</html>
