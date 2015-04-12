@@ -365,17 +365,18 @@ function renameGroup() {
 	var tree = $.T("tree");
     var treeNode = tree.getActiveTreeNode();
     var id = treeNode.id;
-
-    var groupName = prompt("请输入组名称", treeNode.name);
-	if(groupName == null || groupName.trim() == "") {
-		return alert("组名不能为空。");
-	}
-
-	$.ajax({
-		url: URL_SOURCE_RENAME + id + "/" + groupName,
-		onsuccess : function() { 
-			modifyTreeNode(id, "name", groupName);
+ 
+	$.prompt("请输入组名称", "信息输入", function(value) {
+		if(value == null || value.trim() == "") {
+			return alert("组名不能为空。");
 		}
+		
+		$.ajax({
+			url: URL_SOURCE_RENAME + id + "/" + value,
+			onsuccess : function() { 
+				modifyTreeNode(id, "name", value);
+			}
+		});	
 	});
 }
 
@@ -384,19 +385,20 @@ function addNewGroup() {
     var treeNode = tree.getActiveTreeNode();
     var parentID = treeNode.id;
 	var type =  treeNode.getAttribute("type");
-
-    var groupName = prompt("请输入组名称", "");
-	if(groupName == null || groupName.trim() == "") {
-		return alert("组名不能为空。");
-	}
-
-	$.ajax({
-		url : URL_SOURCE_SAVE,
-		params: {"name":groupName, "parentId":parentID, "type": type, "isGroup": "true"},
-		onresult : function() { 
-			var treeNode = this.getNodeValue(XML_MAIN_TREE).querySelector("treeNode");
-			appendTreeNode(parentID, treeNode);
+	
+	$.prompt("请输入组名称", "信息输入", function(value) {
+		if(value == null || value.trim() == "") {
+			return alert("组名不能为空。");
 		}
+		
+		$.ajax({
+			url : URL_SOURCE_SAVE,
+			params: {"name": value, "parentId": parentID, "type": type, "isGroup": "true"},
+			onresult : function() { 
+				var treeNode = this.getNodeValue(XML_MAIN_TREE).querySelector("treeNode");
+				appendTreeNode(parentID, treeNode);
+			}
+		});
 	});
 }
 
@@ -465,7 +467,7 @@ function importComponent() {
 	var url = URL_UPLOAD_FILE + "?groupId=" + getTreeNodeId();
 	url += "&afterUploadClass=com.jinhe.tss.portal.helper.CreateComponent";
 	var importDiv = createImportDiv("只支持XML和zip文件格式导入", checkFileWrong, url);
-	$(importDiv).show().css("position", "absolute").css("left", "100px").css("top", event.clientY + "px");
+	$(importDiv).show().center();
 }	
 
 function exportComponent() {
@@ -479,7 +481,7 @@ function resourceManage() {
     var treeNode = getActiveTreeNode();
 	var code = treeNode.getAttribute("code");
 	var type = getComponentType();
-	window.open("filemanager.html?code=" + code + "&type=" + type, 'newwindow', 'height=288, width=444');
+	window.open("filemanager.html?code=" + code + "&type=" + type, 'newwindow', 'height=360, width=500');
 }
  
 

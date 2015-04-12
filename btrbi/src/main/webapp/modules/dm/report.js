@@ -121,7 +121,7 @@ function initMenus() {
         label:"授予角色",
         icon:"../um/" + ICON + "role_permission.gif",
         callback:setRole2Permission,   
-        visible:function() {return !isTreeRoot() && getOperation("2");}
+        visible:function() {return getOperation("2");}
     }
 
 	var menu = new $.Menu();
@@ -610,11 +610,22 @@ function saveConfigParams() {
 function setRole2Permission() {
     var treeNode = getActiveTreeNode();
     globalValiable = {};
-    globalValiable.roleId = treeNode.id;
+    globalValiable.roleId = treeNode.id == '_root' ? "0" : treeNode.id;
     globalValiable.resourceType = "D1";
     globalValiable.applicationId = "tss";
     globalValiable.isRole2Resource = "0";
     globalValiable.title = "把【" + treeNode.name + "】作为资源授予角色";
 
 	showGridChart("../um/setpermission.html", false);
+}
+
+function selectTL() {
+    popupTree(AUTH_PATH + "rp/template", "SourceTree", {}, function(target) {
+        $.F("reportForm").updateDataExternal("displayUri", target.name);
+    });
+}
+
+function uploadTL() {
+	var type = "reportTL";
+	window.open("../portal/filemanager.html?type=" + type, 'newwindow', 'height=360, width=500');
 }
