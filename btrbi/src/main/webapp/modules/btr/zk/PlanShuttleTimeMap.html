@@ -33,10 +33,10 @@
         for(var i = 0; i < originData.length; i++){
             var center;
             if(queryParams.param2 == '0'){
-                center = originData[i]["center_in"];
+                center = originData[i]["begin_pos"];
             }
             else{
-                center = originData[i]["center_out"];
+                center = originData[i]["end_pos"];
                 type = 1;
             }
             
@@ -46,11 +46,11 @@
         }
 
         List.options.add(new Option('请选择分拨','请选择分拨'));
-        List2.options.add(new Option('全部','全部'));
+        List2.options.add(new Option('请选择分拨','请选择分拨'));
         CenterList.sort();
         for(var i = 0; i < CenterList.length; i++){
-            List.options.add(new Option(CenterList[i],CenterList[i]));
-            List2.options.add(new Option(CenterList[i] + '分拨',CenterList[i] + '分拨'));
+            List.options.add(new Option(CenterList[i] + '分拨',CenterList[i]));
+            List2.options.add(new Option(CenterList[i] + '分拨',CenterList[i]));
         }
 
         Table();
@@ -60,7 +60,8 @@
     function Table(){
         var originData = globalValiable.data,
             table = document.getElementById("Table"),
-            selected = document.getElementById('CenterList2').value;
+            selected = document.getElementById('CenterList2').value,
+            geoCoord = CityLocation(),Matrix = [],List = [],min = 0;
 
         table.innerHTML = '';
         var h = table.createTHead().insertRow();
@@ -80,39 +81,115 @@
         td.innerText = '计划到达时间';
         td.style.color = '#337AB7';
         var td = h.insertCell(5);  
-        td.innerText = '车牌号';
-        td.style.color = '#337AB7';
-        var td = h.insertCell(6);  
-        td.innerText = '备注';
+        td.innerText = '车型';
         td.style.color = '#337AB7';
 
         for(var i = 0; i < originData.length; i++){
-            var cout = originData[i]["center_out"] + '分拨',
-                cin = originData[i]["center_in"] + '分拨',
-                plate = originData[i]["license_plate"],
-                route = originData[i]["route_name"],
-                plan = originData[i]["plan_time"],
-                plan2 = originData[i]["plan_time2"],
-                job_type = originData[i]["rsjob_type"],
-                tr = table.insertRow();
+            var r = originData[i]["route_name"],
+                cin = originData[i]["begin_pos"],
+                out = originData[i]["end_pos"],
+                t = originData[i]["type"],
+                except = type?originData[i]["begin_pos"]:originData[i]["end_pos"];
 
-            if((selected == '全部')||(selected == (type?cout:cin))){
-                var td = tr.insertCell(0);  
-                td.innerText = route;
-                var td = tr.insertCell(1);  
-                td.innerText = cin;
-                var td = tr.insertCell(2);    
-                td.innerText = cout;
-                var td = tr.insertCell(3);   
-                td.innerText = plan;
-                var td = tr.insertCell(4);  
-                td.innerText = plan2;
-                var td = tr.insertCell(5);  
-                td.innerText = plate;
-                var td = tr.insertCell(6);
-                td.innerText = job_type;
+            if((r.indexOf(selected) >= 0)&&((except != selected)||(cin == out))){
+                var truck = originData[i]["truck_type"],
+                    route = originData[i]["route_name"],
+                    spt = originData[i]["stop_plan_time"];
+
+                if(type){
+                    while((route.indexOf(selected) >= 0)&&(route.indexOf('-') >= 0)){
+                        var c = route.substr(0,route.indexOf('-')),temp;
+                        route = route.substr(route.indexOf('-') + 1,route.length - route.indexOf('-') - 1);
+                        var next = route.indexOf('-') >= 0?route.substr(0,route.indexOf('-')):route.substr(route.indexOf('-') + 1,route.length - route.indexOf('-') - 1);
+
+                        var plan = spt.substr(spt.indexOf(':')-2,5);
+                        temp = (plan[0] == '_'?'0':plan[0]) + plan[1] + ':';
+                        temp += plan[4] == '_'?'0' + plan[3]:plan[3] + plan[4];
+                        plan = temp;
+
+                        spt = spt.substr(spt.indexOf(':') + 1,spt.length - spt.indexOf(':') - 1);
+                        var plan2 = spt.substr(spt.indexOf(':')-2,5);
+                        temp = (plan2[0] == '_'?'0':plan2[0]) + plan2[1] + ':';
+                        temp += plan2[4] == '_'?'0' + plan2[3]:plan2[3] + plan2[4];
+                        plan2 = temp;
+
+                        if(next == selected){
+                            c += geoCoord[c] == undefined?'':'分拨';  
+                            next += geoCoord[next] == undefined?'':'分拨';   
+                            Matrix.push({r:r,c:c,n:next,p:plan,p2:plan2,t:truck});
+                        }
+                    }
+                }
+                else{
+                    while((route.indexOf(selected) >= 0)&&(route.indexOf('-') >= 0)){
+                        var c = route.substr(0,route.indexOf('-')),temp;
+                        route = route.substr(route.indexOf('-') + 1,route.length - route.indexOf('-') - 1);
+                        var next = route.indexOf('-') >= 0?route.substr(0,route.indexOf('-')):route.substr(route.indexOf('-') + 1,route.length - route.indexOf('-') - 1);
+
+                        var plan = spt.substr(spt.indexOf(':')-2,5);
+                        temp = (plan[0] == '_'?'0':plan[0]) + plan[1] + ':';
+                        temp += plan[4] == '_'?'0' + plan[3]:plan[3] + plan[4];
+                        plan = temp;
+
+                        spt = spt.substr(spt.indexOf(':') + 1,spt.length - spt.indexOf(':') - 1);
+                        var plan2 = spt.substr(spt.indexOf(':')-2,5);
+                        temp = (plan2[0] == '_'?'0':plan2[0]) + plan2[1] + ':';
+                        temp += plan2[4] == '_'?'0' + plan2[3]:plan2[3] + plan2[4];
+                        plan2 = temp;
+
+                        if(c == selected){
+                            c += geoCoord[c] == undefined?'':'分拨';
+                            next += geoCoord[next] == undefined?'':'分拨';  
+                            Matrix.push({r:r,c:c,n:next,p:plan,p2:plan2,t:truck});
+                        }
+                    }
+                }
             }
         }
+console.log(Matrix);
+        for(var i = 0;i < Matrix.length - 1;i++){
+            var max = 0;
+            while(!List.contains(max)){
+                max++;
+            }
+            for(var i = 0;i < Matrix.length;i++){
+                if(TimeCompare(Matrix[i].plan,Matrix[max].plan)){max = i;}
+                if(TimeCompare(Matrix[min].plan,Matrix[i].plan)){min = i;}
+            }
+
+            var tr = table.insertRow();
+            var td = tr.insertCell(0);  
+            td.innerText = Matrix[max].r;
+            var td = tr.insertCell(1);
+            td.innerText = Matrix[max].c;
+            var td = tr.insertCell(2);     
+            td.innerText = Matrix[max].n;
+            var td = tr.insertCell(3);   
+            td.innerText = Matrix[max].p;
+            var td = tr.insertCell(4);  
+            td.innerText = Matrix[max].p2;
+            var td = tr.insertCell(5);  
+            td.innerText = Matrix[max].t;
+        }
+console.log(Matrix);console.log(min);
+        var tr = table.insertRow();
+        var td = tr.insertCell(0);  
+        td.innerText = Matrix[min].r;
+        var td = tr.insertCell(1);
+        td.innerText = Matrix[min].c;
+        var td = tr.insertCell(2);     
+        td.innerText = Matrix[min].n;
+        var td = tr.insertCell(3);   
+        td.innerText = Matrix[min].p;
+        var td = tr.insertCell(4);  
+        td.innerText = Matrix[min].p2;
+        var td = tr.insertCell(5);  
+        td.innerText = Matrix[min].t;
+
+                            
+
+
+
     }
 
     function Map(){
@@ -122,37 +199,77 @@
             v = true,geoCoord = CityLocation();
 
         for(var i = 0; i < originData.length; i++){
-            var center = type?originData[i]["center_out"]:originData[i]["center_in"];
-            if(center == selected){
-                var cin = originData[i]["center_in"],
-                    out = originData[i]["center_out"],
-                    plate = originData[i]["license_plate"],
+            var r = originData[i]["route_name"],
+                cin = originData[i]["begin_pos"],
+                out = originData[i]["end_pos"],
+                t = originData[i]["type"],
+                except = type?originData[i]["begin_pos"]:originData[i]["end_pos"];
+
+            if((r.indexOf(selected) >= 0)&&((except != selected)||(cin == out))){
+                var truck = originData[i]["truck_type"],
                     route = originData[i]["route_name"],
-                    plan = originData[i]["plan_time"],
-                    plan2 = originData[i]["plan_time2"];
+                    spt = originData[i]["stop_plan_time"];
 
                 if(v){
-                    datapoint.push({name:center,value:center});
+                    datapoint.push({name:selected,value:selected});
                     v = false;
                 }
 
                 if(type){
-                    if(!cList.contains(cin)){
-                        cList.push(cin);
-                        datapoint.push({name:cin,value:cin});
-                        datar.push([{name:cin},{name:center}]);
-                        data[cin + center] = [];
+                    while((route.indexOf(selected) >= 0)&&(route.indexOf('-') >= 0)){
+                        var c = route.substr(0,route.indexOf('-')),temp;
+                        route = route.substr(route.indexOf('-') + 1,route.length - route.indexOf('-') - 1);
+                        var next = route.indexOf('-') >= 0?route.substr(0,route.indexOf('-')):route.substr(route.indexOf('-') + 1,route.length - route.indexOf('-') - 1);
+
+                        var plan = spt.substr(spt.indexOf(':')-2,5);
+                        temp = (plan[0] == '_'?'0':plan[0]) + plan[1] + ':';
+                        temp += plan[4] == '_'?'0' + plan[3]:plan[3] + plan[4];
+                        plan = temp;
+
+                        spt = spt.substr(spt.indexOf(':') + 1,spt.length - spt.indexOf(':') - 1);
+                        var plan2 = spt.substr(spt.indexOf(':')-2,5);
+                        temp = (plan2[0] == '_'?'0':plan2[0]) + plan2[1] + ':';
+                        temp += plan2[4] == '_'?'0' + plan2[3]:plan2[3] + plan2[4];
+                        plan2 = temp;
+
+                        if((next == selected)&&(geoCoord[c] != undefined)&&(geoCoord[next] != undefined)){
+                            if(!cList.contains(c)){
+                                cList.push(c);
+                                datapoint.push({name:c,value:c});
+                                datar.push([{name:c},{name:selected}]);
+                                data[c + selected] = [];
+                            }
+                            data[c + selected].push('>' + truck + '(' + r + ')' + '</br>' + plan + '~' + plan2);
+                        }
                     }
-                    data[cin + center].push('>' + plate + '(' + route + ')' + '</br>' + plan + '~' + plan2);
                 }
                 else{
-                    if(!cList.contains(out)){
-                        cList.push(out);
-                        datapoint.push({name:out,value:out});
-                        datar.push([{name:center},{name:out}]);
-                        data[center + out] = [];
+                    while((route.indexOf(selected) >= 0)&&(route.indexOf('-') >= 0)){
+                        var c = route.substr(0,route.indexOf('-')),temp;
+                        route = route.substr(route.indexOf('-') + 1,route.length - route.indexOf('-') - 1);
+                        var next = route.indexOf('-') >= 0?route.substr(0,route.indexOf('-')):route.substr(route.indexOf('-') + 1,route.length - route.indexOf('-') - 1);
+
+                        var plan = spt.substr(spt.indexOf(':')-2,5);
+                        temp = (plan[0] == '_'?'0':plan[0]) + plan[1] + ':';
+                        temp += plan[4] == '_'?'0' + plan[3]:plan[3] + plan[4];
+                        plan = temp;
+
+                        spt = spt.substr(spt.indexOf(':') + 1,spt.length - spt.indexOf(':') - 1);
+                        var plan2 = spt.substr(spt.indexOf(':')-2,5);
+                        temp = (plan2[0] == '_'?'0':plan2[0]) + plan2[1] + ':';
+                        temp += plan2[4] == '_'?'0' + plan2[3]:plan2[3] + plan2[4];
+                        plan2 = temp;
+
+                        if((c == selected)&&(geoCoord[c] != undefined)&&(geoCoord[next] != undefined)){
+                            if(!cList.contains(next)){
+                                cList.push(next);
+                                datapoint.push({name:next,value:next});
+                                datar.push([{name:selected},{name:next}]);
+                                data[selected + next] = [];
+                            }
+                            data[selected + next].push('>' + truck + '(' + r + ')' + '</br>' + plan + '~' + plan2);
+                        }
                     }
-                    data[center + out].push('>' + plate + '(' + route + ')' + '</br>' + plan + '~' + plan2);
                 }
             }
         }
@@ -275,6 +392,13 @@ var option = {
         myChart.setOption(option);
     }
 
+    function TimeCompare(A,B){
+        var t1 = A[0] * 600 + A[1] * 60 + A[3] * 10 + A[4],
+            t2 = B[0] * 600 + B[1] * 60 + B[3] * 10 + B[4];
+
+        return t1>t2?1:0;
+    }
+
     </script>
 
     <style type="text/css">
@@ -374,8 +498,8 @@ var option = {
 
 <body>
 <ul id="myTab" class="nav nav-tabs">
-    <li class="Tab"><a href="#TabTable" data-toggle="tab">表单</a></li>
-    <li class="Tab"><a id='Tab1' href="#TabMap" data-toggle="tab">地图</a></li>
+    <li class="Tab"><a id='Tab1' href="#TabTable" data-toggle="tab">表单</a></li>
+    <li class="Tab"><a href="#TabMap" data-toggle="tab">地图</a></li>
 </ul> 
 <div class="tab-content">
     <div id="TabMap" class="tab-pane fade" style="background:#262126">
