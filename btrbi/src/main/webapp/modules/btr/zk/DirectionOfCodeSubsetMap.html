@@ -150,7 +150,6 @@
                 if(InData[begin_pos] == undefined){
                     InData[begin_pos] =[];
                     datapoint[0].push({name:begin_pos,value:begin_pos});
-                    datar[0].push([{name:begin_pos},{name:center,value:w}]);
                 }
                 if(InData[begin_pos][end_pos] == undefined){
                     InData[begin_pos][end_pos] = w;
@@ -160,8 +159,7 @@
                 }
                 if(OutData[end_pos] == undefined){
                     OutData[end_pos] =[];
-                    datapoint[1].push({name:end_pos,value:end_pos});        
-                    datar[1].push([{name:next_pos},{name:end_pos,value:w}]);
+                    datapoint[1].push({name:end_pos,value:end_pos}); 
                 }
                 if(OutData[end_pos][begin_pos] == undefined){
                     OutData[end_pos][begin_pos] = w;
@@ -201,6 +199,10 @@
                 }
                 else{
                     RouteData[next_pos][end_pos] += w;
+                }
+                if(w > 0){
+                    datar[0].push([{name:begin_pos},{name:center,value:w}]);
+                    datar[1].push([{name:next_pos},{name:end_pos,value:w}]);
                 }
             }
         }

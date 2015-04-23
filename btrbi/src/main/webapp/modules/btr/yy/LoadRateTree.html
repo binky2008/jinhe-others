@@ -21,10 +21,10 @@
         if(globalValiable && globalValiable.data) {
             queryParams = globalValiable.queryParams;
 
-            if(queryParams.param3 == undefined){
+            if(queryParams.param3 == '-1'){
                 show(globalValiable.data,true,true);
             }
-            else if(queryParams.param3.indexOf('公司') >= 0){
+            else if(queryParams.param4 == '-1'){
                 show(globalValiable.data,false,true);
             }
             else{

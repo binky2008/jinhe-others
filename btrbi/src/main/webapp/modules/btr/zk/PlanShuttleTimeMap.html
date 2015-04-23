@@ -61,7 +61,7 @@
         var originData = globalValiable.data,
             table = document.getElementById("Table"),
             selected = document.getElementById('CenterList2').value,
-            geoCoord = CityLocation(),Matrix = [],List = [],min = 0;
+            geoCoord = CityLocation(),Matrix = [],List = [],max = 0;
 
         table.innerHTML = '';
         var h = table.createTHead().insertRow();
@@ -146,15 +146,34 @@
                 }
             }
         }
-console.log(Matrix);
-        for(var i = 0;i < Matrix.length - 1;i++){
-            var max = 0;
-            while(!List.contains(max)){
-                max++;
-            }
-            for(var i = 0;i < Matrix.length;i++){
-                if(TimeCompare(Matrix[i].plan,Matrix[max].plan)){max = i;}
-                if(TimeCompare(Matrix[min].plan,Matrix[i].plan)){min = i;}
+
+        if(Matrix.length > 0){
+            for(var i = 0;i < Matrix.length - 1;i++){
+                var min= 0;
+                while(List.contains(min)){
+                    min++;
+                }
+                for(var j = 0;j < Matrix.length;j++){
+                    if(!List.contains(j)){
+                        if(TimeCompare(Matrix[j].p,Matrix[max].p)){max = j;}
+                        if(TimeCompare(Matrix[min].p,Matrix[j].p)){min = j;}
+                    }
+                }
+
+                List.push(min);
+                var tr = table.insertRow();
+                var td = tr.insertCell(0);  
+                td.innerText = Matrix[min].r;
+                var td = tr.insertCell(1);
+                td.innerText = Matrix[min].c;
+                var td = tr.insertCell(2);     
+                td.innerText = Matrix[min].n;
+                var td = tr.insertCell(3);   
+                td.innerText = Matrix[min].p;
+                var td = tr.insertCell(4);  
+                td.innerText = Matrix[min].p2;
+                var td = tr.insertCell(5);  
+                td.innerText = Matrix[min].t;
             }
 
             var tr = table.insertRow();
@@ -171,25 +190,6 @@ console.log(Matrix);
             var td = tr.insertCell(5);  
             td.innerText = Matrix[max].t;
         }
-console.log(Matrix);console.log(min);
-        var tr = table.insertRow();
-        var td = tr.insertCell(0);  
-        td.innerText = Matrix[min].r;
-        var td = tr.insertCell(1);
-        td.innerText = Matrix[min].c;
-        var td = tr.insertCell(2);     
-        td.innerText = Matrix[min].n;
-        var td = tr.insertCell(3);   
-        td.innerText = Matrix[min].p;
-        var td = tr.insertCell(4);  
-        td.innerText = Matrix[min].p2;
-        var td = tr.insertCell(5);  
-        td.innerText = Matrix[min].t;
-
-                            
-
-
-
     }
 
     function Map(){
@@ -393,8 +393,11 @@ var option = {
     }
 
     function TimeCompare(A,B){
-        var t1 = A[0] * 600 + A[1] * 60 + A[3] * 10 + A[4],
-            t2 = B[0] * 600 + B[1] * 60 + B[3] * 10 + B[4];
+        var t1 = A[0] * 10 + A[1] * 1.0 - 12,
+            t2 = B[0] * 10 + B[1] * 1.0 - 12;
+
+        t1 = (t1 > 0?t1:t1 + 24) * 60 + A[3] * 10 + A[4] * 1.0;
+        t2 = (t2 > 0?t2:t2 + 24) * 60 + B[3] * 10 + B[4] * 1.0;
 
         return t1>t2?1:0;
     }

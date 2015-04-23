@@ -491,7 +491,7 @@
 				<activeByDefault>false</activeByDefault>
 			</activation>
 			<properties>
-				<environment>prod</environment>
+				<environment>btrbi-prod</environment>
 				<job.enable>false</job.enable>
 				<log.level>info</log.level>
 				<db.username>root</db.username>
@@ -506,7 +506,7 @@
 				<activeByDefault>false</activeByDefault>
 			</activation>
 			<properties>
-				<environment>prod-job</environment>
+				<environment>btrbi-prod-job</environment>
 				<job.enable>true</job.enable>
 				<log.level>info</log.level>
 				<db.username>root</db.username>

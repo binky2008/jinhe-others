@@ -27,9 +27,9 @@
             tab2 = document.getElementById('Table2'),
             tab3 = document.getElementById('Table3'),
             data1 = [],data2 = [],data3 = [];
-        tab.style.height = (screen.height - 210) + 'px';
-        tab2.style.height = (screen.height - 210) + 'px';
-        tab3.style.height = (screen.height - 210) + 'px';
+        tab.style.height = (screen.height - 190) + 'px';
+        tab2.style.height = (screen.height - 190) + 'px';
+        tab3.style.height = (screen.height - 190) + 'px';
 
         data1['累计'] = [];
         data2['累计'] = [];
@@ -171,20 +171,20 @@
             data3['累计'][dd].tn += tn;
         }
 
-        if(queryParams.param3 == undefined){
+        if(queryParams.param3 == '-1'){
             Table1(data1,Relate);
         }
-        else if(queryParams.param3.indexOf('公司') >= 0){
+        else if(queryParams.param4 == '-1'){
             Table12(data1);
         }
         else{
-            Table13(data1,queryParams.param3);
+            Table13(data1,queryParams.param4);
         }
 
-        if(queryParams.param3 == undefined){
+        if(queryParams.param3 == '-1'){
             Table2(data2,Relate,data1,queryParams.param3);
         }
-        else if(queryParams.param3.indexOf('分拨') >= 0){
+        else if(queryParams.param4 != '-1'){
             document.getElementById('TabPro').remove();
         }
         else{
@@ -413,7 +413,7 @@
                 cHtml.push('<th field="' + dayList[i] + '" width="90" align="right" formatter="formatter" styler="styler">' + '累计</th>');
             }
 
-            if(type == undefined){
+            if(type == '-1'){
                 if(datatemp['total'] == null){
                     datatemp['total'] = [];
                 }
@@ -473,7 +473,7 @@
         }
         $$("cityColumn2").innerHTML = cHtml.join("\n");
 
-        if(type == undefined){
+        if(type == '-1'){
             var temp = datatemp['total'];
             temp.name = '全网';
             data.footer.push(temp);
@@ -543,7 +543,7 @@
                 cHtml.push('<th field="' + dayList[i] + '" width="90" align="right" formatter="formatter" styler="styler">' + '累计</th>');
             }
 
-            if(type == undefined){
+            if(type == '-1'){
                 if(datatemp['total'] == null){
                     datatemp['total'] = [];
                 }
@@ -603,7 +603,7 @@
         }
         $$("cityColumn3").innerHTML = cHtml.join("\n");
 
-        if(type == undefined){
+        if(type == '-1'){
             var temp = datatemp['total'];
             temp.name = '全网';
             data.footer.push(temp);

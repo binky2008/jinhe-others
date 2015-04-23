@@ -45,9 +45,13 @@
 
         if(globalValiable && globalValiable.data) {
             queryParams = globalValiable.queryParams;
-            if(queryParams.param3 == undefined){
+            if(queryParams.param3 == '-1'){
                 show(globalValiable.data,'全网',queryParams.param1);
                 Type = '全网';
+                document.getElementById("center")
+                    .options.add(new Option('全网','全网'));
+                document.getElementById("center2")
+                    .options.add(new Option('全网','全网'));
             }
             else{
                 show(globalValiable.data,'总计',queryParams.param1);
@@ -58,10 +62,12 @@
             var centerlist = [];
             for(var i = 0; i < originData.length; i++) {        
                 var company = originData[i]["company"];
-                if( !companylist.contains(company) ){
+                if( !companylist.contains(company)){
                     companylist.push(company);
-                    document.getElementById("center")
-                    .options.add(new Option(company,company));
+                    if(queryParams.param4 == '-1'){
+                        document.getElementById("center")
+                        .options.add(new Option(company,company));
+                    }
                     document.getElementById("center2")
                     .options.add(new Option(company,company));
                 }
@@ -528,10 +534,6 @@ var option = {
            }   
            return t.split("").reverse().join("") + "." + r;   
         } 
-
-
-
-    
     </script>
 
     <style type="text/css">
@@ -544,7 +546,6 @@ var option = {
     <div class="easyui-tabs" data-options='fit:true'>
         <div title="走势图" style="font-family:Microsoft YaHei;font-size:16px;">
             选择: <select id="center" style="font-family:Microsoft YaHei;font-size:16px;" onchange="painting()">  
-            <option value="全网">全网</option>    
             </select>&nbsp;
             <button id='repainting' onClick='painting()' style="width:60px;font-family:Microsoft YaHei;font-size:16px;">刷新</button>
             <div style='float:right;'>
@@ -596,8 +597,7 @@ var option = {
         </div>
         <div title="细节表" style="font-family:Microsoft YaHei;font-size:16px;">
             <div style="font-family:Microsoft YaHei;font-size:16px;">
-                选择: <select id="center2" style="font-family:Microsoft YaHei;font-size:16px;" onchange="painting()">  
-                <option value="全网">全网</option>    
+                选择: <select id="center2" style="font-family:Microsoft YaHei;font-size:16px;" onchange="painting()">    
                 </select>&nbsp;
                 大于：<input class="easyui-numberbox" id='mins' style="width:25px;font-family:Microsoft YaHei;font-size:16px;"></input>
                 小于：<input class="easyui-numberbox" id='maxs'style="width:25px;font-family:Microsoft YaHei;font-size:16px;"></input>
