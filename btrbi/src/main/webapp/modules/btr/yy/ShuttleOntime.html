@@ -133,8 +133,14 @@
             else if(Type == 4){
                matrix[d] += originData[i]["e10"];
             }
-            else{
+            else if(Type == 5){
                matrix[d] += originData[i]["e20"];
+            }
+            else if(Type == 6){
+               matrix[d] += originData[i]["d10"];
+            }
+            else{
+               matrix[d] += originData[i]["d20"];
             }
             matrix2[d] += originData[i]["n"];
          }
@@ -169,10 +175,16 @@
       name = '运行及时率';
    }
    else if(Type == 4){
-      name = '提前发车10分钟比率';
+      name = '提前发车10分钟以上比率';
+   }
+   else if(Type == 5){
+      name = '提前发车20分钟以上比率';
+   }
+   else if(Type == 6){
+      name = '延迟发车0~10分钟比率';
    }
    else{
-      name = '提前发车20分钟比率';
+      name = '延迟发车10分钟以上比率';
    }
 
    series.push({
@@ -269,7 +281,8 @@ var option = {
          data2 = {},
          datasorted = {},
          CenterList = [],
-         CompanyList = [];
+         CompanyList = []
+         net_ot = 0,net_r = 0,net_s = 0,net_t = 0;
 
       data = [];
       data2 = [];
@@ -309,6 +322,11 @@ var option = {
         data2[company].total += originData[i]["n"];
         data2[company].reach += originData[i]["reach"];
         data2[company].ontime += originData[i]["run"];
+
+        net_s+= originData[i]["send"];
+        net_t += originData[i]["n"];
+        net_r += originData[i]["reach"];
+        net_ot += originData[i]["run"];
       }
 
 //////////////////////////////////排序
@@ -337,6 +355,33 @@ var option = {
 /////////////////////////////////制表
       var table = document.getElementById("tablesummary"),
         deal = [];
+
+        var tr = table.insertRow();
+        var td1 = tr.insertCell(0);  
+        td1.innerText = '全网';
+        td1.style.color = '#337AB7';
+        var td2 = tr.insertCell(1);  
+        td2.innerText = net_t;
+        td2.style.color = '#337AB7';
+        var td3 = tr.insertCell(2);  
+        td3.innerText = net_t-net_s;
+        td3.style.color = '#337AB7';
+        var td4 = tr.insertCell(3);  
+        td4.innerText = Math.round(net_s/net_t*1000)/10+'%';
+        td4.style.color = '#337AB7';
+        var td5 = tr.insertCell(4);  
+        td5.innerText = net_t-net_r;
+        td5.style.color = '#337AB7';
+        var td6 = tr.insertCell(5);  
+        td6.innerText = Math.round(net_r/net_t*1000)/10+'%';
+        td6.style.color = '#337AB7';
+        var td7 = tr.insertCell(6);  
+        td7.innerText = net_t-net_ot;
+        td7.style.color = '#337AB7';
+        var td8 = tr.insertCell(7);  
+        td8.innerText = Math.round(net_ot/net_t*1000)/10+'%';
+        td8.style.color = '#337AB7';
+
       for(var k = 0; k < CompanyList.length; k++){
         var c = CompanyList[k];
         if(!deal.contains(c)){
@@ -755,6 +800,12 @@ var option = {
          </label>
          <label class="btn btn-primary" id='trans' onclick='Repainting(5,1)'>
             <input type="radio" name="options" id="option3">提前发车20分钟
+         </label>
+         <label class="btn btn-primary" id='trans' onclick='Repainting(6,1)'>
+            <input type="radio" name="options" id="option3">延迟发车0~10分钟
+         </label>
+         <label class="btn btn-primary" id='trans' onclick='Repainting(7,1)'>
+            <input type="radio" name="options" id="option3">延迟发车10分钟以上
          </label>
       </div>  
       <select id="CenterSelect" onchange="Painting()"></select>&nbsp;

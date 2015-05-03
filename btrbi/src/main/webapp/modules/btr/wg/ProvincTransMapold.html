@@ -30,9 +30,9 @@
         var map = document.getElementById('Map'),
             pie = document.getElementById('Pie');
 
-        map.style.height = (screen.height - 195) + 'px';
+        map.style.height = (screen.height - 265) + 'px';
         map.style.width = (screen.width - 18) + 'px';
-        pie.style.height = (screen.height - 195) + 'px';
+        pie.style.height = (screen.height - 265) + 'px';
         pie.style.width = (screen.width -18) + 'px';
 
 
@@ -54,8 +54,10 @@
 
 option = {
     title : {
-        text: subtitle,
-        textStyle:{fontSize:'18',color: '#999999',fontFamily:'Microsoft YaHei'},
+        text: '全网货量占比',
+        textStyle:{fontSize:'24',fontFamily:'Microsoft YaHei'},
+        subtext: subtitle,
+        subtextStyle:{fontSize:'18',color: '#999999',fontFamily:'Microsoft YaHei'},
         x:'left'
     },
     tooltip : {
@@ -104,8 +106,10 @@ option = {
  
 var option = {
     title : {
-        text: subtitle,
-        textStyle:{fontSize:'18',color: '#999999',fontFamily:'Microsoft YaHei'},
+        text: '全网货量地图',
+        textStyle:{fontSize:'24',fontFamily:'Microsoft YaHei'},
+        subtext: subtitle,
+        subtextStyle:{fontSize:'18',color: '#999999',fontFamily:'Microsoft YaHei'},
         x:'left'
     },
     tooltip : {
@@ -123,8 +127,7 @@ var option = {
         y: 'bottom',
         text:['最高','0'],           // 文本，默认为数值文本
         calculable : true,
-        textStyle:{color: '#fff'},
-        color:['#ec4646','white']
+        //color:['orangered','yellow','lightskyblue']
     },
     series : [
         {
@@ -162,73 +165,32 @@ var option = {
             color:#ffffff;
             border-radius:5px;
         } 
-        dt {
-            font-family:Microsoft YaHei;
-            font-size:20px;
-            text-indent:30px;
-        }
-        dd {
-            font-family:Microsoft YaHei;
-            font-size:16px;
-            text-indent:60px;
-        }
-        li {font-family:Microsoft YaHei;color:#ec4646}
-        th {
-            color:#999;
-            font-family:Microsoft YaHei;
-            font-style:normal;
-        }
-        td{font-family:Microsoft YaHei;}
-        span {width:16px;height:16px;}
-        .modal-title{font-family:Microsoft YaHei;color:#ec4646;}
-        .panel-heading,.btn-primary {font-family:Microsoft YaHei;}
-        .table-hover{margin-top: 15px;}
-        .copybtn {
-            font-family:Microsoft YaHei;
-            width:140px;
-            margin-top: 3px;
-        }
-        .Tab {font-family:Microsoft YaHei;}
-        .ul{
-            background-color:#2e2e2e;
-            font-family:Microsoft YaHei;
-            text-align: center;
-            color:#ec4646;
-            width: 140px;
-            margin-top: 5px;
-            margin-left: 15px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.067);
-        }
 /*//////////////////////////////////////Bootstrap Style*/
-        ul.nav-tabs{
-            background: #2e2e2e;
-            border: #2e2e2e;
+        .navcustom li{
+            margin: 0;
+            border-top: 1px solid #ddd;
         }
-        ul.nav-tabs li ul{
-            background: #2e2e2e;
+        .navcustom li:first-child{
+            border-top: none;
         }
-        ul.nav-tabs li a{
-            color:#ec4646;
-            background: #2e2e2e;
+        .navcustom li a{
             margin: 0;
             padding: 8px 16px;
             border-radius: 0;
-            border: 1px solid #2e2e2e;
         }
-        ul.nav-tabs li.active a{
-            color:#fff;
-            background: #ec4646;
-            margin: 0;
-            padding: 8px 16px;
-            border-radius: 0;
-            border: 1px solid #ec4646;
-        }
-        ul.nav-tabs li.active a:hover{
+        .navcustom li.active a, ul.nav-tabs li.active a:hover{
             color: #fff;
-            background: #ec4646;
-            border: 1px solid #ec4646;
+            background: #0088cc;
+            border: 1px solid #0088cc;
+        }
+        .navcustom li:first-child a{
+            border-radius: 4px 4px 0 0;
+        }
+        .navcustom li:last-child a{
+            border-radius: 0 0 4px 4px;
+        }
+        .navcustom.affix{
+            top: 30px; /* Set the top position of pinned element */
         }
     </style>
 </head>
@@ -237,53 +199,14 @@ var option = {
     <ul id="myTab" class="nav nav-tabs">
         <li class="Tab"><a id='Tab1' href="#TabMap" data-toggle="tab">地图</a></li>
         <li class="Tab"><a href="#TabPie" data-toggle="tab">饼图</a></li>
-        <li class="Tab dropdown">
-        <a href="#notice1" data-toggle="modal" data-toggle="tab">
-            说明书
-        </a>
-    </li>
     </ul> 
     <div class="tab-content">
-        <div id="TabMap" class="tab-pane fade" style="background:#2e2e2e">
+        <div id="TabMap" class="tab-pane fade">
             <div id='Map' style="height:640px;"></div>
         </div>
-        <div id="TabPie" class="tab-pane fade" style="background:#2e2e2e">
+        <div id="TabPie" class="tab-pane fade">
             <div id='Pie' style="height:640px;"></div>
         </div>
-        <div class="modal fade" id="notice1" tabindex="-1" role="dialog" 
-       aria-labelledby="myModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" 
-                    data-dismiss="modal" aria-hidden="true">
-                        &times;
-                    </button>
-                    <h4 class="modal-title" id="myModalLabel">
-                    货量说明
-                    </h4>
-                </div>
-                <div class="modal-body">
-                <dl>
-                    <dt>取值逻辑</dt>
-                    <dd>1 获取查询日期内所有录单单号</dd>
-                    <dd>2 根据单号确定体积重量和实际重量，并取最大值</dd>
-                    <dd>3 对录单重量求和</dd>
-                    <dt>时间节点</dt>
-                    <dd>- 查询起始日期8:00至查询结束日期次日8:00</dd>
-                    <dt>注意事项</dt>
-                    <dd>- 数据实时更新，查询当日或前一日数据由于部分数据不全会偏低</dd>
-                </dl>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" 
-                    data-dismiss="modal">     
-                    我知道了
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
     </div>
 </body>
 </html>

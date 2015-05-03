@@ -1,0 +1,1826 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>快运周报</title>
+
+    <link rel="stylesheet" type="text/css" href="../../tools/easyui/themes/default/easyui.css">
+    <link rel="stylesheet" type="text/css" href="../../tools/easyui/themes/icon.css">
+    <link rel="stylesheet" type="text/css" href="../../dm/common.css">
+
+    <script src="../../tools/easyui/jquery.min.js"></script>
+    <script src="../../tools/easyui/jquery.easyui.min.js"></script>
+
+    <script src="../../framework/core.js"></script>
+    <script src="../../framework/ajax.js"></script>
+    <script src="../../dm/common.js"></script>
+
+    <script type="text/javascript">
+    var MyColor = ['#5C0303','#D33C11','#EF4926','#F37A5A','#EF9728',
+                '#EFC028','#7CC699','#00A272','#008972','#005E37','#005E37'],
+        data = {},
+        ThisMonth;
+
+    window.onload = function() {
+        var originData = window.parent.globalValiable.data;
+
+        Table(originData);
+    }
+
+    function Table(originData){
+        var dataD = [],
+            dataC = [],
+            dataA = [],
+            CenterList = [],
+            CompanyList = [],
+            DayList = [],
+            TypeDay = [];
+
+        for(var i = 0; i < originData.length; i++) {
+            var center = originData[i]["center"],
+                company = originData[i]["company"],
+                datatype = originData[i]["type"],
+                inday = originData[i]["dayfrom"] + originData[i]["dayto"];
+            var d = originData[i]["center"] + inday,
+                c = originData[i]["company"] + inday;
+
+            if(!DayList.contains(inday)){
+                DayList.push(inday);
+                if(datatype == '月数据'){
+                    TypeDay[inday] = 'M';
+                }
+                else{
+                    TypeDay[inday] = 'W';
+                }
+            }
+            if(!CompanyList.contains(company)){
+                CompanyList.push(company);
+            }
+            if(!CenterList.contains(center)){
+                CenterList.push(center);
+            }
+
+            if(dataD[d] == null){
+                dataD[d] = {};
+            }
+            if(dataC[c] == null){
+                dataC[c] = {};
+                dataC[c].lw = 0;
+                dataC[c].lm = 0;
+                dataC[c].b = 0;
+                dataC[c].l = 0;
+                dataC[c].pass = 0;
+                dataC[c].e = 0;
+                dataC[c].duty = 0;
+                dataC[c].c = 0;
+                dataC[c].send = 0;
+                dataC[c].pw = 0;
+                dataC[c].ow = 0;
+                dataC[c].so = 0;
+                dataC[c].ss = 0;
+                dataC[c].stay = 0;
+                dataC[c].num = 0;
+                dataC[c].costT = 0;
+                dataC[c].cost = 0;
+                dataC[c].weight = 0;
+                dataC[c].disp = 0;
+                dataC[c].site = 0;
+                dataC[c].n = 0;
+                dataC[c].tn = 0;
+                dataC[c].n2 = 0;
+                dataC[c].tn2 = 0;
+                dataC[c].bk = 0;
+            }
+            if(dataA[inday] == null){
+                dataA[inday] = {};
+                dataA[inday].lw = 0;
+                dataA[inday].lm = 0;
+                dataA[inday].b = 0;
+                dataA[inday].l = 0;
+                dataA[inday].pass = 0;
+                dataA[inday].e = 0;
+                dataA[inday].duty = 0;
+                dataA[inday].c = 0;
+                dataA[inday].send = 0;
+                dataA[inday].pw = 0;
+                dataA[inday].ow = 0;
+                dataA[inday].so = 0;
+                dataA[inday].ss = 0;
+                dataA[inday].stay = 0;
+                dataA[inday].num = 0;
+                dataA[inday].costT = 0;
+                dataA[inday].cost = 0;
+                dataA[inday].weight = 0;
+                dataA[inday].disp = 0;
+                dataA[inday].site = 0;     
+                dataA[inday].n = 0;
+                dataA[inday].tn = 0;    
+                dataA[inday].n2 = 0;
+                dataA[inday].tn2 = 0;
+                dataA[inday].bk = 0;               
+            }
+
+            dataD[d].lw = originData[i]["loadweight"];
+            dataD[d].lm = originData[i]["loadmax"];
+            dataD[d].b = originData[i]["broken"];
+            dataD[d].l = originData[i]["lost"];
+            dataD[d].pass = originData[i]["pass"];
+            dataD[d].e = originData[i]["effect"];
+            dataD[d].duty = originData[i]["duty"];
+            dataD[d].c = originData[i]["complaint"];
+            dataD[d].send = originData[i]["send"];
+            dataD[d].pw = originData[i]["passweight"];
+            dataD[d].ow = originData[i]["operationweight"];
+            dataD[d].so = originData[i]["shuttleontime"];
+            dataD[d].ss = originData[i]["sendshuttle"];
+            dataD[d].stay = originData[i]["stay"];
+            dataD[d].num = originData[i]["num"];
+            dataD[d].costT = originData[i]["cost"];
+            dataD[d].cost = originData[i]["costshuttle"];
+            dataD[d].weight = originData[i]["weight"];
+            dataD[d].disp = originData[i]["disp"];
+            dataD[d].site = originData[i]["site"];
+            dataD[d].n = originData[i]["n"];
+            dataD[d].tn = originData[i]["tn"];
+            dataD[d].n2 = originData[i]["n2"];
+            dataD[d].tn2 = originData[i]["tn2"];
+            dataD[d].bk = originData[i]["break"];
+            dataD[d].company = company;
+
+            dataC[c].lw += originData[i]["loadweight"];
+            dataC[c].lm += originData[i]["loadmax"];
+            dataC[c].b += originData[i]["broken"];
+            dataC[c].l += originData[i]["lost"];
+            dataC[c].pass += originData[i]["pass"];
+            dataC[c].e += originData[i]["effect"];
+            dataC[c].duty += originData[i]["duty"];
+            dataC[c].c += originData[i]["complaint"];
+            dataC[c].send += originData[i]["send"];
+            dataC[c].pw += originData[i]["passweight"];
+            dataC[c].ow += originData[i]["operationweight"];
+            dataC[c].so += originData[i]["shuttleontime"];
+            dataC[c].ss += originData[i]["sendshuttle"];
+            dataC[c].stay += originData[i]["stay"];
+            dataC[c].num += originData[i]["num"];
+            dataC[c].costT += originData[i]["cost"];
+            dataC[c].cost += originData[i]["costshuttle"];
+            dataC[c].weight += originData[i]["weight"];
+            dataC[c].disp += originData[i]["disp"];
+            dataC[c].site += originData[i]["site"];
+            dataC[c].n += originData[i]["n"];
+            dataC[c].tn += originData[i]["tn"];
+            dataC[c].n2 += originData[i]["n2"];
+            dataC[c].tn2 += originData[i]["tn2"];
+            dataC[c].bk += originData[i]["break"];
+
+            dataA[inday].lw += originData[i]["loadweight"];
+            dataA[inday].lm += originData[i]["loadmax"];
+            dataA[inday].b += originData[i]["broken"];
+            dataA[inday].l += originData[i]["lost"];
+            dataA[inday].pass += originData[i]["pass"];
+            dataA[inday].e += originData[i]["effect"];
+            dataA[inday].duty += originData[i]["duty"];
+            dataA[inday].c += originData[i]["complaint"];
+            dataA[inday].send += originData[i]["send"];
+            dataA[inday].pw += originData[i]["passweight"];
+            dataA[inday].ow += originData[i]["operationweight"];
+            dataA[inday].so += originData[i]["shuttleontime"];
+            dataA[inday].ss += originData[i]["sendshuttle"];
+            dataA[inday].stay += originData[i]["stay"];
+            dataA[inday].num += originData[i]["num"];
+            dataA[inday].costT += originData[i]["cost"];
+            dataA[inday].cost += originData[i]["costshuttle"];
+            dataA[inday].weight += originData[i]["weight"];
+            dataA[inday].disp += originData[i]["disp"];
+            dataA[inday].site += originData[i]["site"];
+            dataA[inday].n += originData[i]["n"];
+            dataA[inday].tn += originData[i]["tn"];
+            dataA[inday].n2 += originData[i]["n2"];
+            dataA[inday].tn2 += originData[i]["tn2"];
+            dataA[inday].bk += originData[i]["break"];
+        }
+
+////////////////////////////////表头
+        var title = document.getElementById('title')
+            weekcount = 1;       
+        for(var i = 0; i < DayList.length - 1; i++){   
+            if(TypeDay[DayList[i]] == 'W'){
+                title.innerHTML += '<th field="' + DayList[i] + '" width="110" align="right" formatter="formatter" styler="styler">' + MyWeek(weekcount,DayList[i]) + '</th>';
+                weekcount++;
+            }
+            else{
+                title.innerHTML += '<th field="' + DayList[i] + '" width="110" align="right" formatter="formatter" styler="styler">' + MyMonth(DayList[i]) + '</th>';
+            }
+       }
+       title.innerHTML += '<th field="' + DayList[DayList.length - 1] + '" width="110" align="right" formatter="formatter" styler="styler">' + '本月平均</th>';
+       ThisMonth = DayList[DayList.length - 1];
+       title.innerHTML += '<th field="Compare" width="110" align="right" formatter="formatter" styler="stylerC">' + '上周对比</th>';
+       weekcount--;
+            
+        var id = 1,ID,dl = DayList.length - 2;
+        data.rows = [];
+        data.footer = [];
+
+////////////////////////////////////////////////货量
+        var temp = {};
+        for(var day in DayList){
+            if(day != 'contains'){
+                if(dataA[DayList[day]].weight == undefined){
+                    temp[DayList[day]] = 0;
+                }
+                else{
+                    temp[DayList[day]] = dataA[DayList[day]].weight/1000;
+                }
+            }
+        }
+        temp.name = '货量';
+        ID = id;
+        temp.id = id++;
+        temp.state = "closed";
+        temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+        data.rows.push(temp);
+
+        for(var c in CompanyList){
+            var temp = []
+                cid = id;
+            for(var day in DayList){
+                if((day != 'contains')&&(c != 'contains')){              
+                    var n = CompanyList[c] + DayList[day];
+                    if(dataC[n].weight == undefined){
+                        temp[DayList[day]] = 0;
+                    }
+                    else{
+                        temp[DayList[day]] =  dataC[n].weight/1000;
+                    } 
+                }
+            }
+
+            if(c != 'contains'){
+                temp.name = CompanyList[c];
+                temp.id = id++;
+                temp._parentId = ID;
+                temp.state = "closed";
+                temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+                data.rows.push(temp);
+            }
+
+            for(var d in CenterList){
+                var temp = [];
+                    valve = false;
+                if(d != 'contains'){
+                    for(var day in DayList){
+                        if(day != 'contains'){
+                            var n = CenterList[d] + DayList[day];
+                            if(dataD[n].company == CompanyList[c]){
+                                valve = true;
+                                if(dataD[n].weight == undefined){
+                                    temp[DayList[day]] = 0;
+                                }
+                                else{
+                                    temp[DayList[day]] =  dataD[n].weight/1000;
+                                }
+                            }
+                        }
+                    }
+
+                    if(valve){
+                        temp.name = CenterList[d];
+                        temp.id = id++;
+                        temp._parentId = cid;
+                        temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+                        data.rows.push(temp);
+                    }
+                }    
+            }
+        }
+////////////////////////////////////////////////点均日收货量
+        var temp = {};
+        for(var day in DayList){
+            if(day != 'contains'){
+                if((dataA[DayList[day]].site == undefined)||(dataA[DayList[day]].site == 0)){
+                    temp[DayList[day]] = '';
+                }
+                else{
+                    temp[DayList[day]] = dataA[DayList[day]].weight / dataA[DayList[day]].site/7000;
+                }
+            }
+        }
+        temp.name = '点均日收货量';
+        ID = id;
+        temp.id = id++;
+        temp.state = "closed";
+        temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+        data.rows.push(temp);
+
+        for(var c in CompanyList){
+            var temp = []
+                cid = id;
+            for(var day in DayList){
+                if((day != 'contains')&&(c != 'contains')){              
+                    var n = CompanyList[c] + DayList[day];
+                    if((dataC[n].site == undefined)||(dataC[n].site == 0)){
+                        temp[DayList[day]] = '';
+                    }
+                    else{
+                        temp[DayList[day]] =  dataC[n].weight / dataC[n].site/7000;
+                    } 
+                }
+            }
+
+            if(c != 'contains'){
+                temp.name = CompanyList[c];
+                temp.id = id++;
+                temp._parentId = ID;
+                temp.state = "closed";
+                temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+                data.rows.push(temp);
+            }
+
+            for(var d in CenterList){
+                var temp = [];
+                    valve = false;
+                if(d != 'contains'){
+                    for(var day in DayList){
+                        if(day != 'contains'){
+                            var n = CenterList[d] + DayList[day];
+                            if(dataD[n].company == CompanyList[c]){
+                                valve = true;
+                                if((dataD[n].site == undefined)||(dataD[n].site == 0)){
+                                    temp[DayList[day]] = '';
+                                }
+                                else{
+                                    temp[DayList[day]] =  dataD[n].weight / dataD[n].site/7000;
+                                }
+                            }
+                        }
+                    }
+
+                    if(valve){
+                        temp.name = CenterList[d];
+                        temp.id = id++;
+                        temp._parentId = cid;
+                        temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+                        data.rows.push(temp);
+                    }
+                }    
+            }
+        }
+////////////////////////////////////////////////点均日派货量
+        var temp = {};
+        for(var day in DayList){
+            if(day != 'contains'){
+                if((dataA[DayList[day]].site == undefined)||(dataA[DayList[day]].site == 0)){
+                    temp[DayList[day]] = '';
+                }
+                else{
+                    temp[DayList[day]] = dataA[DayList[day]].disp / dataA[DayList[day]].site/7000;
+                }
+            }
+        }
+        temp.name = '点均日派货量';
+        ID = id;
+        temp.id = id++;
+        temp.state = "closed";
+        temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+        data.rows.push(temp);
+
+        for(var c in CompanyList){
+            var temp = []
+                cid = id;
+            for(var day in DayList){
+                if((day != 'contains')&&(c != 'contains')){              
+                    var n = CompanyList[c] + DayList[day];
+                    if((dataC[n].site == undefined)||(dataC[n].site == 0)){
+                        temp[DayList[day]] = '';
+                    }
+                    else{
+                        temp[DayList[day]] =  dataC[n].disp / dataC[n].site/7000;
+                    } 
+                }
+            }
+
+            if(c != 'contains'){
+                temp.name = CompanyList[c];
+                temp.id = id++;
+                temp._parentId = ID;
+                temp.state = "closed";
+                temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+                data.rows.push(temp);
+            }
+
+            for(var d in CenterList){
+                var temp = [];
+                    valve = false;
+                if(d != 'contains'){
+                    for(var day in DayList){
+                        if(day != 'contains'){
+                            var n = CenterList[d] + DayList[day];
+                            if(dataD[n].company == CompanyList[c]){
+                                valve = true;
+                                if((dataD[n].site == undefined)||(dataD[n].site == 0)){
+                                    temp[DayList[day]] = '';
+                                }
+                                else{
+                                    temp[DayList[day]] =  dataD[n].disp / dataD[n].site/7000;
+                                }
+                            }
+                        }
+                    }
+
+                    if(valve){
+                        temp.name = CenterList[d];
+                        temp.id = id++;
+                        temp._parentId = cid;
+                        temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+                        data.rows.push(temp);
+                    }
+                }    
+            }
+        }
+/////////////////////////////////////////////////中转费单价
+        var temp = {};
+        for(var day in DayList){
+            if(day != 'contains'){
+                if((dataA[DayList[day]].weight == undefined)||(dataA[DayList[day]].weight == 0)){
+                    temp[DayList[day]] = '';
+                }
+                else{
+                    temp[DayList[day]] = dataA[DayList[day]].costT / dataA[DayList[day]].weight;
+                }
+            }
+        }
+        temp.name = '中转费单价(收入)';
+        ID = id;
+        temp.id = id++;
+        temp.state = "closed";
+        temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+        data.rows.push(temp);
+
+        for(var c in CompanyList){
+            var temp = []
+                cid = id;
+            for(var day in DayList){
+                if((day != 'contains')&&(c != 'contains')){
+                    var n = CompanyList[c] + DayList[day];
+                    if((dataC[n].weight == undefined)||(dataC[n].weight == 0)){
+                        temp[DayList[day]] = '';
+                    }
+                    else{
+                        temp[DayList[day]] = dataC[n].costT / dataC[n].weight;
+                    } 
+                }
+            }
+
+            if(c != 'contains'){
+                temp.name = CompanyList[c];
+                temp.id = id++;
+                temp._parentId = ID;
+                temp.state = "closed";
+                temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+                data.rows.push(temp);
+            }
+
+            for(var d in CenterList){
+                var temp = [];
+                    valve = false;
+                if(d != 'contains'){
+                    for(var day in DayList){
+                        if(day != 'contains'){
+                            var n = CenterList[d] + DayList[day];
+                            if(dataD[n].company == CompanyList[c]){
+                                valve = true;
+                                if((dataD[n].weight == undefined)||(dataD[n].weight == 0)){
+                                    temp[DayList[day]] = '';
+                                }
+                                else{
+                                    temp[DayList[day]] =  dataD[n].costT / dataD[n].weight;
+                                }
+                            }
+                        }
+                    }
+                    
+                    if(valve){
+                        temp.name = CenterList[d];
+                        temp.id = id++;
+                        temp._parentId = cid;
+                        temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+                        data.rows.push(temp);
+                    }
+                }    
+            }
+        }
+////////////////////////////////////////////////运载单价 
+        var temp = {};
+        for(var day in DayList){
+            if(day != 'contains'){
+                if((dataA[DayList[day]].lw == undefined)||(dataA[DayList[day]].lw == 0)){
+                    temp[DayList[day]] = '';
+                }
+                else{
+                    temp[DayList[day]] = Math.round(100*dataA[DayList[day]].cost / dataA[DayList[day]].lw)/100 + '(' + Math.round(100*dataA[DayList[day]].cost / dataA[DayList[day]].lm)/100 + ')';
+                }
+            }
+        }
+        temp.name = '运载单价(成本)';
+        ID = id;
+        temp.id = id++;
+        temp.state = "closed";
+        temp['Compare'] = Math.round(100*(temp[DayList[dl]].substr(0,temp[DayList[dl]].indexOf('(')) - temp[DayList[dl-1]].substr(0,temp[DayList[dl-1]].indexOf('('))))/100;
+        data.rows.push(temp);
+
+        for(var c in CompanyList){
+            var temp = []
+                cid = id;
+            for(var day in DayList){
+                if((day != 'contains')&&(c != 'contains')){              
+                    var n = CompanyList[c] + DayList[day];
+                    if((dataC[n].lw == undefined)||(dataC[n].lw == 0)){
+                        temp[DayList[day]] = '';
+                    }
+                    else{
+                        temp[DayList[day]] =  Math.round(100*dataC[n].cost / dataC[n].lw)/100 + '(' + Math.round(100*dataC[n].cost / dataC[n].lm)/100 + ')';
+                    } 
+                }
+            }
+
+            if(c != 'contains'){
+                temp.name = CompanyList[c];
+                temp.id = id++;
+                temp._parentId = ID;
+                temp.state = "closed";
+                temp['Compare'] = Math.round(100*(temp[DayList[dl]].substr(0,temp[DayList[dl]].indexOf('(')) - temp[DayList[dl-1]].substr(0,temp[DayList[dl-1]].indexOf('('))))/100;
+                data.rows.push(temp);
+            }
+
+            for(var d in CenterList){
+                var temp = [];
+                    valve = false;
+                if(d != 'contains'){
+                    for(var day in DayList){
+                        if(day != 'contains'){
+                            var n = CenterList[d] + DayList[day];
+                            if(dataD[n].company == CompanyList[c]){
+                                valve = true;
+                                if((dataD[n].lw == undefined)||(dataD[n].lw == 0)){
+                                    temp[DayList[day]] = '';
+                                }
+                                else{
+                                    temp[DayList[day]] =  Math.round(100*dataD[n].cost / dataD[n].lw)/100 + '(' + Math.round(100*dataD[n].cost / dataD[n].lm)/100 + ')';
+                                }
+                            }
+                        }
+                    }
+
+                    if(valve){
+                        temp.name = CenterList[d];
+                        temp.id = id++;
+                        temp._parentId = cid;
+                        temp['Compare'] = Math.round(100*(temp[DayList[dl]].substr(0,temp[DayList[dl]].indexOf('(')) - temp[DayList[dl-1]].substr(0,temp[DayList[dl-1]].indexOf('('))))/100;
+                        data.rows.push(temp);
+                    }
+                }    
+            }
+        }
+/////////////////////////////////////////////////装载率
+        var temp = {};
+        for(var day in DayList){
+            if(day != 'contains'){
+                temp[DayList[day]] = 100 * dataA[DayList[day]].lw / dataA[DayList[day]].lm;
+            }
+        }
+        temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+        temp.name = '装载率';
+        ID = id;
+        temp.id = id++;
+        temp.state = "closed";
+        data.rows.push(temp);
+
+        for(var c in CompanyList){
+            var temp = []
+                cid = id;
+            for(var day in DayList){
+                if((day != 'contains')&&(c != 'contains')){
+                    var n = CompanyList[c] + DayList[day];
+                    if((dataC[n].lm == undefined)||(dataC[n].lm == 0)){
+                        temp[DayList[day]] = '';
+                    }
+                    else{
+                        temp[DayList[day]] = 100 * dataC[n].lw / dataC[n].lm;
+                    } 
+                }
+            }
+
+            if(c != 'contains'){
+                temp.name = CompanyList[c];
+                temp.id = id++;
+                temp._parentId = ID;
+                temp.state = "closed";
+                temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+                data.rows.push(temp);
+            }
+
+            for(var d in CenterList){
+                var temp = [];
+                    valve = false;
+                if(d != 'contains'){
+                    for(var day in DayList){
+                        if(day != 'contains'){
+                            var n = CenterList[d] + DayList[day];
+                            if(dataD[n].company == CompanyList[c]){
+                                valve = true;
+                                if((dataD[n].lm == undefined)||(dataD[n].lm == 0)){
+                                    temp[DayList[day]] = '';
+                                }
+                                else{
+                                    temp[DayList[day]] = 100 * dataD[n].lw / dataD[n].lm
+                                }
+                            }
+                        }
+                    }
+                    
+                    if(valve){
+                        temp.name = CenterList[d];
+                        temp.id = id++;
+                        temp._parentId = cid;
+                        temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+                        data.rows.push(temp);
+                    }
+                }    
+            }
+        }
+////////////////////////////////////////////////中转率
+        var temp = {};
+        for(var day in DayList){
+            if(day != 'contains'){
+                if((dataA[DayList[day]].pw == undefined)||(dataA[DayList[day]].pw == 0)){
+                    temp[DayList[day]] = 0;
+                }
+                else{
+                    temp[DayList[day]] = dataA[DayList[day]].ow / dataA[DayList[day]].pw;
+                }
+            }
+        }
+        temp.name = '中转率';
+        ID = id;
+        temp.id = id++;
+        temp.state = "closed";
+        temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+        data.rows.push(temp);
+
+        for(var c in CompanyList){
+            var temp = []
+                cid = id;
+            for(var day in DayList){
+                if((day != 'contains')&&(c != 'contains')){              
+                    var n = CompanyList[c] + DayList[day];
+                    if((dataC[n].pw == undefined)||(dataC[n].pw == 0)){
+                        temp[DayList[day]] = '';
+                    }
+                    else{
+                        temp[DayList[day]] =  dataC[n].ow / dataC[n].pw;
+                    } 
+                }
+            }
+
+            if(c != 'contains'){
+                temp.name = CompanyList[c];
+                temp.id = id++;
+                temp._parentId = ID;
+                temp.state = "closed";
+                temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+                data.rows.push(temp);
+            }
+
+            for(var d in CenterList){
+                var temp = [];
+                    valve = false;
+                if(d != 'contains'){
+                    for(var day in DayList){
+                        if(day != 'contains'){
+                            var n = CenterList[d] + DayList[day];
+                            if(dataD[n].company == CompanyList[c]){
+                                valve = true;
+                                if((dataD[n].pw == undefined)||(dataD[n].pw == 0)){
+                                    temp[DayList[day]] = 0;
+                                }
+                                else{
+                                    temp[DayList[day]] =  dataD[n].ow / dataD[n].pw;
+                                }
+                            }
+                        }
+                    }
+
+                    if(valve){
+                        temp.name = CenterList[d];
+                        temp.id = id++;
+                        temp._parentId = cid;
+                        temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+                        data.rows.push(temp);
+                    }
+                }    
+            }
+        }
+////////////////////////////////////////////////投诉率
+        var temp = {};
+        for(var day in DayList){
+            if(day != 'contains'){
+                if((dataA[DayList[day]].send == undefined)||(dataA[DayList[day]].send == 0)){
+                    temp[DayList[day]] = 0;
+                }
+                else{
+                    temp[DayList[day]] = 100000 * dataA[DayList[day]].c / dataA[DayList[day]].send;
+                }
+            }
+        }
+        temp.name = '投诉率';
+        ID = id;
+        temp.id = id++;
+        temp.state = "closed";
+        temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+        data.rows.push(temp);
+
+        for(var c in CompanyList){
+            var temp = []
+                cid = id;
+            for(var day in DayList){
+                if((day != 'contains')&&(c != 'contains')){
+                    var n = CompanyList[c] + DayList[day];
+                    if((dataC[n].send == undefined)||(dataC[n].send == 0)){
+                        temp[DayList[day]] = 0;
+                    }
+                    else{
+                        temp[DayList[day]] =  100000 * dataC[n].c / dataC[n].send;
+                    } 
+                }
+            }
+
+            if(c != 'contains'){
+                temp.name = CompanyList[c];
+                temp.id = id++;
+                temp._parentId = ID;
+                temp.state = "closed";
+                temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+                data.rows.push(temp);
+            }
+
+            for(var d in CenterList){
+                var temp = [];
+                    valve = false;
+                if(d != 'contains'){
+                    for(var day in DayList){
+                        if(day != 'contains'){
+                            var n = CenterList[d] + DayList[day];
+                            if(dataD[n].company == CompanyList[c]){
+                                valve = true;
+                                if((dataD[n].send == undefined)||(dataD[n].send == 0)){
+                                    temp[DayList[day]] = 0;
+                                }
+                                else{
+                                    temp[DayList[day]] =  100000 * dataD[n].c / dataD[n].send;
+                                }
+                            }
+                        }
+                    }
+                    
+                    if(valve){
+                        temp.name = CenterList[d];
+                        temp.id = id++;
+                        temp._parentId = cid;
+                        temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+                        data.rows.push(temp);
+                    }
+                }    
+            }
+        }
+////////////////////////////////////////////////破损率
+        var temp = {};
+        for(var day in DayList){
+            if(day != 'contains'){
+                if((dataA[DayList[day]].pass == undefined)||(dataA[DayList[day]].pass == 0)){
+                    temp[DayList[day]] = 0;
+                }
+                else{
+                    temp[DayList[day]] = 200000 * dataA[DayList[day]].b / dataA[DayList[day]].pass;
+                }
+            }
+        }
+        temp.name = '破损率';
+        ID = id;
+        temp.id = id++;
+        temp.state = "closed";
+        temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+        data.rows.push(temp);
+
+        for(var c in CompanyList){
+            var temp = []
+                cid = id;
+            for(var day in DayList){
+                if((day != 'contains')&&(c != 'contains')){
+                    var n = CompanyList[c] + DayList[day];
+                    if((dataC[n].pass == undefined)||(dataC[n].pass == 0)){
+                        temp[DayList[day]] = 0;
+                    }
+                    else{
+                        temp[DayList[day]] = 200000 * dataC[n].b / dataC[n].pass;
+                    } 
+                }
+            }
+
+            if(c != 'contains'){
+                temp.name = CompanyList[c];
+                temp.id = id++;
+                temp._parentId = ID;
+                temp.state = "closed";
+                temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+                data.rows.push(temp);
+            }
+
+            for(var d in CenterList){
+                var temp = [];
+                    valve = false;
+                if(d != 'contains'){
+                    for(var day in DayList){
+                        if(day != 'contains'){
+                            var n = CenterList[d] + DayList[day];
+                            if(dataD[n].company == CompanyList[c]){
+                                valve = true;
+                                if((dataD[n].pass == undefined)||(dataD[n].pass == 0)){
+                                    temp[DayList[day]] = 0;
+                                }
+                                else{
+                                    temp[DayList[day]] = 200000 * dataD[n].b / dataD[n].pass;
+                                }
+                            }
+                        }
+                    }
+                    
+                    if(valve){
+                        temp.name = CenterList[d];
+                        temp.id = id++;
+                        temp._parentId = cid;
+                        temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+                        data.rows.push(temp);
+                    }
+                }    
+            }
+        }
+////////////////////////////////////////////////遗失率
+        var temp = {};
+        for(var day in DayList){
+            if(day != 'contains'){
+                if((dataA[DayList[day]].pass == undefined)||(dataA[DayList[day]].pass == 0)){
+                    temp[DayList[day]] = 0;
+                }
+                else{
+                    temp[DayList[day]] = 200000 * dataA[DayList[day]].l / dataA[DayList[day]].pass;
+                }
+            }
+        }
+        temp.name = '遗失率';
+        ID = id;
+        temp.id = id++;
+        temp.state = "closed";
+        temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+        data.rows.push(temp);
+
+        for(var c in CompanyList){
+            var temp = []
+                cid = id;
+            for(var day in DayList){
+                if((day != 'contains')&&(c != 'contains')){
+                    var n = CompanyList[c] + DayList[day];
+                    if((dataC[n].pass == undefined)||(dataC[n].pass == 0)){
+                        temp[DayList[day]] = 0;
+                    }
+                    else{
+                        temp[DayList[day]] = 200000 * dataC[n].l / dataC[n].pass;
+                    } 
+                }
+            }
+
+            if(c != 'contains'){
+                temp.name = CompanyList[c];
+                temp.id = id++;
+                temp._parentId = ID;
+                temp.state = "closed";
+                temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+                data.rows.push(temp);
+            }
+
+            for(var d in CenterList){
+                var temp = [];
+                    valve = false;
+                if(d != 'contains'){
+                    for(var day in DayList){
+                        if(day != 'contains'){
+                            var n = CenterList[d] + DayList[day];
+                            if(dataD[n].company == CompanyList[c]){
+                                valve = true;
+                                if((dataD[n].pass == undefined)||(dataD[n].pass == 0)){
+                                    temp[DayList[day]] = 0;
+                                }
+                                else{
+                                    temp[DayList[day]] = 200000 * dataD[n].l / dataD[n].pass;
+                                }
+                            }
+                        }
+                    }
+                    
+                    if(valve){
+                        temp.name = CenterList[d];
+                        temp.id = id++;
+                        temp._parentId = cid;
+                        temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+                        data.rows.push(temp);
+                    }
+                }    
+            }
+        }
+/////////////////////////////////////////////////投诉/破损比
+        var temp = {};
+        for(var day in DayList){
+            if(day != 'contains'){
+                if((dataA[DayList[day]].bk == undefined)||(dataA[DayList[day]].bk == 0)){
+                    temp[DayList[day]] = '';
+                }
+                else{
+                    temp[DayList[day]] = dataA[DayList[day]].c / dataA[DayList[day]].bk;
+                }
+            }
+        }
+        temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+        temp.name = '投诉/破损比';
+        ID = id;
+        temp.id = id++;
+        temp.state = "closed";
+        data.rows.push(temp);
+
+        for(var c in CompanyList){
+            var temp = []
+                cid = id;
+            for(var day in DayList){
+                if((day != 'contains')&&(c != 'contains')){
+                    var n = CompanyList[c] + DayList[day];
+                    if((dataC[n].bk == undefined)||(dataC[n].bk == 0)){
+                        temp[DayList[day]] = '';
+                    }
+                    else{
+                        temp[DayList[day]] = dataC[n].c / dataC[n].bk;
+                    } 
+                }
+            }
+
+            if(c != 'contains'){
+                temp.name = CompanyList[c];
+                temp.id = id++;
+                temp._parentId = ID;
+                temp.state = "closed";
+                temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+                data.rows.push(temp);
+            }
+
+            for(var d in CenterList){
+                var temp = [];
+                    valve = false;
+                if(d != 'contains'){
+                    for(var day in DayList){
+                        if(day != 'contains'){
+                            var n = CenterList[d] + DayList[day];
+                            if(dataD[n].company == CompanyList[c]){
+                                valve = true;
+                                if((dataD[n].bk == undefined)||(dataD[n].bk == 0)){
+                                    temp[DayList[day]] = '';
+                                }
+                                else{
+                                    temp[DayList[day]] = dataD[n].c / dataD[n].bk;
+                                }
+                            }
+                        }
+                    }
+                    
+                    if(valve){
+                        temp.name = CenterList[d];
+                        temp.id = id++;
+                        temp._parentId = cid;
+                        temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+                        data.rows.push(temp);
+                    }
+                }    
+            }
+        }
+/////////////////////////////////////////////////人均效能
+        var temp = {};
+        for(var day in DayList){
+            if(day != 'contains'){
+                if((dataA[DayList[day]].duty == undefined)||(dataA[DayList[day]].duty == 0)){
+                    temp[DayList[day]] = 0;
+                }
+                else{
+                    temp[DayList[day]] = dataA[DayList[day]].e / dataA[DayList[day]].duty;
+                }
+            }
+        }
+        temp.name = '人均效能';
+        ID = id;
+        temp.id = id++;
+        temp.state = "closed";
+        temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+        data.rows.push(temp);
+
+        for(var c in CompanyList){
+            var temp = []
+                cid = id;
+            for(var day in DayList){
+                if((day != 'contains')&&(c != 'contains')){
+                    var n = CompanyList[c] + DayList[day];
+                    if((dataC[n].duty == undefined)||(dataC[n].duty == 0)){
+                        temp[DayList[day]] = 0;
+                    }
+                    else{
+                        temp[DayList[day]] = dataC[n].e / dataC[n].duty;
+                    } 
+                }
+            }
+
+            if(c != 'contains'){
+                temp.name = CompanyList[c];
+                temp.id = id++;
+                temp._parentId = ID;
+                temp.state = "closed";
+                temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+                data.rows.push(temp);
+            }
+
+            for(var d in CenterList){
+                var temp = [];
+                    valve = false;
+                if(d != 'contains'){
+                    for(var day in DayList){
+                        if(day != 'contains'){
+                            var n = CenterList[d] + DayList[day];
+                            if(dataD[n].company == CompanyList[c]){
+                                valve = true;
+                                if((dataD[n].duty == undefined)||(dataD[n].duty == 0)){
+                                    temp[DayList[day]] = 0;
+                                }
+                                else{
+                                    temp[DayList[day]] =  dataD[n].e / dataD[n].duty;
+                                }
+                            }
+                        }
+                    }
+                    
+                    if(valve){
+                        temp.name = CenterList[d];
+                        temp.id = id++;
+                        temp._parentId = cid;
+                        temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+                        data.rows.push(temp);
+                    }
+                }    
+            }
+        }
+////////////////////////////////////////////////留仓率
+        var temp = {};
+        for(var day in DayList){
+            if(day != 'contains'){
+                if((dataA[DayList[day]].num == undefined)||(dataA[DayList[day]].num == 0)){
+                    temp[DayList[day]] = '';
+                }
+                else{
+                    temp[DayList[day]] = 100 * dataA[DayList[day]].stay / dataA[DayList[day]].num;
+                }
+            }
+        }
+        temp.name = '留仓率';
+        ID = id;
+        temp.id = id++;
+        temp.state = "closed";
+        temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+        data.rows.push(temp);
+
+        for(var c in CompanyList){
+            var temp = []
+                cid = id;
+            for(var day in DayList){
+                if((day != 'contains')&&(c != 'contains')){              
+                    var n = CompanyList[c] + DayList[day];
+                    if((dataC[n].num == undefined)||(dataC[n].num == 0)){
+                        temp[DayList[day]] = '';
+                    }
+                    else{
+                        temp[DayList[day]] =  100 * dataC[n].stay / dataC[n].num;
+                    } 
+                }
+            }
+
+            if(c != 'contains'){
+                temp.name = CompanyList[c];
+                temp.id = id++;
+                temp._parentId = ID;
+                temp.state = "closed";
+                temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+                data.rows.push(temp);
+            }
+
+            for(var d in CenterList){
+                var temp = [];
+                    valve = false;
+                if(d != 'contains'){
+                    for(var day in DayList){
+                        if(day != 'contains'){
+                            var n = CenterList[d] + DayList[day];
+                            if(dataD[n].company == CompanyList[c]){
+                                valve = true;
+                                if((dataD[n].num == undefined)||(dataD[n].num == 0)){
+                                    temp[DayList[day]] = '';
+                                }
+                                else{
+                                    temp[DayList[day]] =  100 * dataD[n].stay / dataD[n].num;
+                                }
+                            }
+                        }
+                    }
+
+                    if(valve){
+                        temp.name = CenterList[d];
+                        temp.id = id++;
+                        temp._parentId = cid;
+                        temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+                        data.rows.push(temp);
+                    }
+                }    
+            }
+        }
+////////////////////////////////////////////////发车准点率
+        var temp = {};
+        for(var day in DayList){
+            if(day != 'contains'){
+                if((dataA[DayList[day]].ss == undefined)||(dataA[DayList[day]].ss == 0)){
+                    temp[DayList[day]] = '';
+                }
+                else{
+                    temp[DayList[day]] = 100 * dataA[DayList[day]].so / dataA[DayList[day]].ss;
+                }
+            }
+        }
+        temp.name = '发车准点率';
+        ID = id;
+        temp.id = id++;
+        temp.state = "closed";
+        temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+        data.rows.push(temp);
+
+        for(var c in CompanyList){
+            var temp = []
+                cid = id;
+            for(var day in DayList){
+                if((day != 'contains')&&(c != 'contains')){              
+                    var n = CompanyList[c] + DayList[day];
+                    if((dataC[n].ss == undefined)||(dataC[n].ss == 0)){
+                        temp[DayList[day]] = '';
+                    }
+                    else{
+                        temp[DayList[day]] =  100 * dataC[n].so / dataC[n].ss;
+                    } 
+                }
+            }
+
+            if(c != 'contains'){
+                temp.name = CompanyList[c];
+                temp.id = id++;
+                temp._parentId = ID;
+                temp.state = "closed";
+                temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+                data.rows.push(temp);
+            }
+
+            for(var d in CenterList){
+                var temp = [];
+                    valve = false;
+                if(d != 'contains'){
+                    for(var day in DayList){
+                        if(day != 'contains'){
+                            var n = CenterList[d] + DayList[day];
+                            if(dataD[n].company == CompanyList[c]){
+                                valve = true;
+                                if((dataD[n].ss == undefined)||(dataD[n].ss == 0)){
+                                    temp[DayList[day]] = '';
+                                }
+                                else{
+                                    temp[DayList[day]] =  100 * dataD[n].so / dataD[n].ss;
+                                }
+                            }
+                        }
+                    }
+
+                    if(valve){
+                        temp.name = CenterList[d];
+                        temp.id = id++;
+                        temp._parentId = cid;
+                        temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+                        data.rows.push(temp);
+                    }
+                }    
+            }
+        }
+/////////////////////////////////////////////////时效
+        var temp = {};
+        for(var day in DayList){
+            if(day != 'contains'){
+                if((dataA[DayList[day]].tn == undefined)||(dataA[DayList[day]].tn == 0)){
+                    temp[DayList[day]] = '';
+                }
+                else{
+                    temp[DayList[day]] = 100 * dataA[DayList[day]].n / dataA[DayList[day]].tn;
+                }
+            }
+        }
+        temp.name = '时效';
+        ID = id;
+        temp.id = id++;
+        temp.state = "closed";
+        temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+        data.rows.push(temp);
+
+        for(var c in CompanyList){
+            var temp = []
+                cid = id;
+            for(var day in DayList){
+                if((day != 'contains')&&(c != 'contains')){
+                    var n = CompanyList[c] + DayList[day];
+                    if((dataC[n].tn == undefined)||(dataC[n].tn == 0)){
+                        temp[DayList[day]] = '';
+                    }
+                    else{
+                        temp[DayList[day]] = 100 * dataC[n].n / dataC[n].tn;
+                    } 
+                }
+            }
+
+            if(c != 'contains'){
+                temp.name = CompanyList[c];
+                temp.id = id++;
+                temp._parentId = ID;
+                temp.state = "closed";
+                temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+                data.rows.push(temp);
+            }
+
+            for(var d in CenterList){
+                var temp = [];
+                    valve = false;
+                if(d != 'contains'){
+                    for(var day in DayList){
+                        if(day != 'contains'){
+                            var n = CenterList[d] + DayList[day];
+                            if(dataD[n].company == CompanyList[c]){
+                                valve = true;
+                                if((dataD[n].tn == undefined)||(dataD[n].tn == 0)){
+                                    temp[DayList[day]] = '';
+                                }
+                                else{
+                                    temp[DayList[day]] =  100 * dataD[n].n / dataD[n].tn;
+                                }
+                            }
+                        }
+                    }
+                    
+                    if(valve){
+                        temp.name = CenterList[d];
+                        temp.id = id++;
+                        temp._parentId = cid;
+                        temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+                        data.rows.push(temp);
+                    }
+                }    
+            }
+        }
+/////////////////////////////////////////////////运营时效
+        var temp = {};
+        for(var day in DayList){
+            if(day != 'contains'){
+                if((dataA[DayList[day]].tn == undefined)||(dataA[DayList[day]].tn == 0)){
+                    temp[DayList[day]] = '';
+                }
+                else{
+                    temp[DayList[day]] = 100 * dataA[DayList[day]].n2 / dataA[DayList[day]].tn2;
+                }
+            }
+        }
+        temp.name = '运营时效';
+        ID = id;
+        temp.id = id++;
+        temp.state = "closed";
+        temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+        data.rows.push(temp);
+
+        for(var c in CompanyList){
+            var temp = []
+                cid = id;
+            for(var day in DayList){
+                if((day != 'contains')&&(c != 'contains')){
+                    var n = CompanyList[c] + DayList[day];
+                    if((dataC[n].tn == undefined)||(dataC[n].tn == 0)){
+                        temp[DayList[day]] = '';
+                    }
+                    else{
+                        temp[DayList[day]] = 100 * dataC[n].n2 / dataC[n].tn2;
+                    } 
+                }
+            }
+
+            if(c != 'contains'){
+                temp.name = CompanyList[c];
+                temp.id = id++;
+                temp._parentId = ID;
+                temp.state = "closed";
+                temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+                data.rows.push(temp);
+            }
+
+            for(var d in CenterList){
+                var temp = [];
+                    valve = false;
+                if(d != 'contains'){
+                    for(var day in DayList){
+                        if(day != 'contains'){
+                            var n = CenterList[d] + DayList[day];
+                            if(dataD[n].company == CompanyList[c]){
+                                valve = true;
+                                if((dataD[n].tn == undefined)||(dataD[n].tn == 0)){
+                                    temp[DayList[day]] = '';
+                                }
+                                else{
+                                    temp[DayList[day]] =  100 * dataD[n].n2 / dataD[n].tn2;
+                                }
+                            }
+                        }
+                    }
+                    
+                    if(valve){
+                        temp.name = CenterList[d];
+                        temp.id = id++;
+                        temp._parentId = cid;
+                        temp['Compare'] = temp[DayList[dl]] - temp[DayList[dl - 1]];
+                        data.rows.push(temp);
+                    }
+                }    
+            }
+        }
+
+
+        $('#Table').treegrid({
+            idField:'id',
+            treeField:'name',
+            rownumbers: true,
+            showFooter: true,
+            animate: true,
+            data: data
+        });
+    }
+
+    function MyWeek(c,v){
+        return '第' + c + '周(' + Math.round(v.substr(5,2)) + '月' + Math.round(v.substr(8,2)) + '日起)';
+    }
+
+    function MyMonth(v){
+        return Math.round(v.substr(5,2)) + '月';
+    }
+
+    function stylerC(value,row,index){
+        var name,style = 'background:#F3F0CD;font-weight:bold;';
+        if(row.children == undefined){
+            name = data.rows[data.rows[row._parentId-1]._parentId-1].name;
+        }
+        else if(row._parentId == undefined){
+            name = row.name;
+        }
+        else{
+            name = data.rows[row._parentId-1].name;
+        }
+
+        if(Math.abs(value) < 0.01){
+            style += 'color:#EF9728;';
+        }
+        else if((name == '运载单价(成本)')||(name == '中转率')||(name == '投诉率')||(name == '破损率')||(name == '遗失率')||(name == '投诉/破损比')||(name == '留仓率')){
+            if(value > 0){
+                style += 'color:#D33C11;';
+            }
+            else{
+                style += 'color:#389562;';
+            }
+        }
+        else{
+            if(value < 0){
+                style += 'color:#D33C11;';
+            }
+            else{
+                style += 'color:#389562;';
+            }
+        }
+        return style;   
+    }
+
+    function styler(value,row,index){
+        var name;
+        if(row.children == undefined){
+            name = data.rows[data.rows[row._parentId-1]._parentId-1].name;
+        }
+        else if(row._parentId == undefined){
+            name = row.name;
+        }
+        else{
+            name = data.rows[row._parentId-1].name;
+        }
+
+        if(name == '装载率'){
+            var c = Math.floor(value/10);
+            if(c > 9){
+                c = 9;
+            }
+            else if(c > 6){
+                c--;
+            }
+            else if(c < 4){
+                ;
+            }
+            else if(value < 55){
+                c = 4;
+            }
+            else{
+                c = 5;
+            }
+            return 'color:' + MyColor[c] +';font-weight:bold;'; 
+        }
+        else if(name == '时效'){
+            var c = Math.floor(value/10);
+             return 'color:' + MyColor[c] +';font-weight:bold;';
+        }
+        else if(name == '运营时效'){
+            var c;
+            if(value >= 95){
+                c = 9;
+            }
+            else if(value >= 90){
+                c = 8;
+            }
+            else if(value >= 85){
+                c = 7;
+            }
+            else if(value >= 80){
+                c = 6;
+            }
+            else if(value >= 70){
+                c = 5;
+            }
+            else if(value >= 60){
+                c = 4;
+            }
+
+            else if(value >= 45){
+                c = 3;
+            }
+            else if(value >= 30){
+                c = 2;
+            }
+            else if(value >= 15){
+                c = 1;
+            }
+            else{
+                c = 0;
+            }
+            return 'color:' + MyColor[c] +';font-weight:bold;'; 
+        }
+        else if(name == '中转率'){
+            var c = 17 - Math.floor(value * 2);
+            if(value >= 10){
+                c = 0;
+            }
+            else if(value >= 9){
+                c = 1;
+            }
+            else if(value >= 8){
+                c = 2;
+            }
+            else if(value >= 7){
+                c = 3;
+            }        
+            return 'color:' + MyColor[c] +';font-weight:bold;';                 
+        }
+        else if((name == '破损率')||(name == '遗失率')){
+            var c = 9 - Math.ceil(value * 10);
+            if(value > 1){
+                c = 0;
+            }
+            else if(value > 0.8){
+                c = 1;
+            }
+            else if(value > 0.6){
+                c = 2;
+            }
+            else if(value > 0.5){
+                c = 3;
+            }        
+            return 'color:' + MyColor[c] +';font-weight:bold;';   
+        }
+        else if(name == '发车准点率'){
+            var c;
+            if(value >= 100){
+                c = 9;
+            }
+            else if(value >= 98){
+                c = 8;
+            }
+            else if(value >= 95){
+                c = 7;
+            }
+            else if(value >= 90){
+                c = 6;
+            }
+            else if(value >= 80){
+                c = 5;
+            }
+            else if(value >= 70){
+                c = 4;
+            }
+            else if(value >= 60){
+                c = 3;
+            }
+            else if(value >= 40){
+                c = 2;
+            }
+            else if(value >= 20){
+                c = 1;
+            }
+            else{
+                c = 0;
+            }
+            return 'color:' + MyColor[c] +';font-weight:bold;';  
+        }
+        else if(name == '人均效能'){
+            var c;
+            if(value >= 17){
+                c = 9;
+            }
+            else if(value >= 14){
+                c = 8;
+            }
+            else if(value >= 11){
+                c = 7;
+            }
+            else if(value >= 8){
+                c = 6;
+            }
+            else if(value >= 7){
+                c = 5;
+            }
+            else if(value >= 6){
+                c = 4;
+            }
+            else if(value >= 5){
+                c = 3;
+            }
+            else if(value >= 3){
+                c = 2;
+            }
+            else if(value >= 1){
+                c = 1;
+            }
+            else{
+                c = 0;
+            }
+            return 'color:' + MyColor[c] +';font-weight:bold;';
+        }
+        else if(name == '留仓率'){
+            var c = 9 - Math.floor(value);
+            if(value >= 20){
+                c = 0;
+            }
+            else if(value >= 10){
+                c = 1;
+            }
+            else if(value >= 8){
+                c = 2;
+            }
+            else if(value >= 6){
+                c = 3;
+            }
+            return 'color:' + MyColor[c] +';font-weight:bold;';
+        }
+        else if((name == '货量')||(name == '点均日收货量')||(name == '点均日派货量')){
+            var c;
+                avg = data.rows[row.id-1][ThisMonth];
+            if(value >= avg){
+                var add = 100 * value / avg - 100;
+                if(add < 1){
+                    c = 6;
+                }
+                else if(add < 2){
+                    c = 7;
+                }
+                else if(add < 5){
+                    c = 8;
+                }
+                else{
+                    c = 9;
+                }
+            }
+            else{
+                var minus = 100 - 100 * value / avg;
+                if(minus <= 1){
+                    c = 5;
+                }
+                else if(minus <= 2){
+                    c = 4;
+                }
+                else if(minus <= 5){
+                    c = 3;
+                }
+                else if(minus <= 10){
+                    c = 2;
+                }
+                else if(minus <= 20){
+                    c = 1;
+                }
+                else{
+                    c = 0;
+                }
+            }
+            return 'color:' + MyColor[c] +';font-weight:bold;';
+        }
+        else if(name == '投诉率'){
+            var c = 9 - Math.floor(value / 20);
+            if(value >= 300){
+                c = 0;
+            }
+            else if(value >= 200){
+                c = 1;
+            }
+            else if(value >= 150){
+                c = 2;
+            }
+            else if(value >= 120){
+                c = 3;
+            }
+            return 'color:' + MyColor[c] +';font-weight:bold;';
+        }
+        else if(name == '投诉/破损比'){
+            var c;
+            if(value >= 30){
+                c = 0;
+            }
+            else if(value >= 20){
+                c = 1;
+            }
+            else if(value >= 15){
+                c = 2;
+            }
+            else if(value >= 12){
+                c = 3;
+            }
+            else if(value >= 9){
+                c = 4;
+            }
+            else if(value >= 7){
+                c = 5;
+            }
+            else if(value >= 5){
+                c = 6;
+            }
+            else if(value >= 3){
+                c = 7;
+            }
+            else if(value >= 1){
+                c = 8;
+            }
+            else{
+                c = 9;
+            }
+            return 'color:' + MyColor[c] +';font-weight:bold;';
+        }
+        else if(name == '中转费单价(收入)'){
+            var c,
+                avg = data.rows[row.id-1][ThisMonth];
+
+            if(value > avg){
+                var add = value - avg;
+                if(add < 0.5){c = 7;}
+                else if(add < 1){c = 8;}
+                else{c = 9;}
+            }
+            else if(value == avg){c = 6;}
+            else{
+                var add = avg - value;
+                if(add < 0.1){c = 5;}
+                else if(add < 0.2){c = 4;}
+                else if(add < 0.3){c = 3;}
+                else if(add < 0.5){c = 2;}
+                else if(add < 1){c = 1;}
+                else{c = 0;}
+            }
+            return 'color:' + MyColor[c] +';font-weight:bold;';
+        }
+        else if(name == '运载单价(成本)'){
+            var c,
+                val = value.substr(0,value.indexOf('(')),
+                avg = data.rows[row.id-1][ThisMonth];
+            avg = avg.substr(0,avg.indexOf('('));
+                   
+            if(val> avg){
+                var add = val - avg;
+                if(add < 0.5){c = 7;}
+                else if(add < 1){c = 8;}
+                else{c = 9;}
+            }
+            else if(val == avg){c = 6;}
+            else{
+                var add = avg - val;
+                if(add < 0.1){c = 5;}
+                else if(add < 0.2){c = 4;}
+                else if(add < 0.3){c = 3;}
+                else if(add < 0.5){c = 2;}
+                else if(add < 1){c = 1;}
+                else{c = 0;}
+            }
+            return 'color:' + MyColor[c] +';font-weight:bold;';
+        }
+        else{
+            return 'font-weight:bold;'; 
+        }  
+    }
+
+    function formatter(value, row, index){
+        var name;
+        if(row.children == undefined){
+            name = data.rows[data.rows[row._parentId-1]._parentId-1].name;
+        }
+        else if(row._parentId == undefined){
+            name = row.name;
+        }
+        else{
+            name = data.rows[row._parentId-1].name;
+        }
+
+        if((name == '运载单价(成本)')||(value == '')){
+            return value;
+        }
+        else if(name == '货量'){
+            return Math.round(value);
+        }
+        else if((name == '装载率')||(name == '时效')||(name == '运营时效')||(name == '发车准点率')){
+            return formatMoney(value, 1) + '%';
+        }
+        else if(name == '留仓率'){
+            return formatMoney(value, 2) + '%';
+        }
+        else{
+            var r = formatMoney(value, 2);
+            if(r == 0){
+                return 0;
+            }
+            else{
+                return r;
+            }
+        }
+    }
+
+    function formatMoney(s, n) {
+       n = n > 0 && n <= 20 ? n : 2;   
+       s = parseFloat((s + "").replace(/[^\d\.-]/g, "")).toFixed(n) + "";   
+       var l = s.split(".")[0].split("").reverse(),   
+       r = s.split(".")[1];   
+       t = "";   
+       for(i = 0; i < l.length; i ++ ) {   
+          t += l[i] + ((i + 1) % 3 == 0 && (i + 1) != l.length ? "," : "");   
+       }   
+       return t.split("").reverse().join("") + "." + r;   
+    } 
+
+    Array.prototype.contains = function(obj) {
+        var i = this.length;  
+        while (i--) {  
+            if (this[i] === obj) {  
+                return true;  
+            }  
+        }  
+        return false;  
+    } 
+    </script>
+</head>
+
+<body>
+    <div title="明细" class="easyui" data-options="fit:true">
+        <table id="Table" >
+            <thead frozen="true">
+                <tr id="title">
+                    <th  id='detailtitle' field="name" width="200">名称</th>
+                </tr>
+            </thead>
+            <thead>
+                <tr id="cityColumn"></tr>
+            </thead>
+        </table>
+    </div>
+</body>
+</html>
