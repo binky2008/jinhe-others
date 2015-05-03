@@ -29,6 +29,8 @@ public class BtrScriptParser implements ScriptParser {
     		}
     	}
     	
+    	// TODO 对value自身进行宏解析, eg: ${permission_1} 替换成 用户公司， ${permission_2} 替换成 用户分拨
+    	
 		return SOUtil.freemarkerParse(script, dataMap);
 	}
 	
