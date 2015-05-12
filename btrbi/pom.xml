@@ -439,13 +439,6 @@
 									file="${basedir}/target/classes/application.properties" 
 									match="environment = dev" 
 									replace="environment = ${environment}" byline="true" />
-									
-								<echo>
-									process appServers.xml: set tomcat.url to ${tomcat.url};
-								</echo>
-								<replaceregexp
-									file="${basedir}/target/classes/tss/appServers.xml" 
-									match="localhost:8088" replace="${tomcat.url}" byline="true" />
 							</tasks>
 						</configuration>
 					</execution>
@@ -481,10 +474,10 @@
 				<db.username>root</db.username>
 				<db.password>800best@com</db.password>
 				<db.url>127.0.0.1:3306/tss</db.url>
-				<tomcat.url>localhost:8088</tomcat.url>
 			</properties>
 		</profile>
 		
+		<!-- release to 168 as UAT -->
 		<profile>
 			<id>prod</id>
 			<activation>
@@ -496,10 +489,11 @@
 				<log.level>info</log.level>
 				<db.username>root</db.username>
 				<db.password>800best@com</db.password>
-				<db.url>10.8.72.80:3306/btrbi</db.url>
-				<tomcat.url>127.0.0.1:8080</tomcat.url>
+				<db.url>10.8.72.70:3306/btrbi</db.url>
 			</properties>
 		</profile>
+		
+		<!-- release to bsd(10.8.72.70) as prod -->
 		<profile>
 			<id>prod-job</id>
 			<activation>
@@ -511,23 +505,7 @@
 				<log.level>info</log.level>
 				<db.username>root</db.username>
 				<db.password>800best@com</db.password>
-				<db.url>10.8.72.80:3306/btrbi</db.url>
-				<tomcat.url>127.0.0.1:8080</tomcat.url>
-			</properties>
-		</profile>
-		<profile>
-			<id>uat</id>
-			<activation>
-				<activeByDefault>false</activeByDefault>
-			</activation>
-			<properties>
-				<environment>uat</environment>
-				<job.enable>true</job.enable>
-				<log.level>debug</log.level>
-				<db.username>root</db.username>
-				<db.password>800best@com</db.password>
-				<db.url>127.0.0.1:3306/btr_tss</db.url>
-				<tomcat.url>bl00618-l</tomcat.url>
+				<db.url>127.0.0.1:3306/btrbi</db.url>
 			</properties>
 		</profile>
 		

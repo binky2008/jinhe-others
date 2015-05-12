@@ -972,6 +972,8 @@
             /* 取消事件 */
             cancel: function(ev) { 
                 ev = ev || window.event;
+                if(!ev) return;
+
                 if (ev.preventDefault) {
                     ev.preventDefault();
                 } else {
@@ -1006,6 +1008,8 @@
 
             /* 阻止事件向上冒泡 */
             cancelBubble: function(ev) {
+                if(!ev) return;
+                
                 if( ev.stopPropagation ) {
                     ev.stopPropagation();
                 }
@@ -1911,27 +1915,13 @@
         $(boxEl).center(360, 300);   
         callback && $.showWaitingLayer();
 
-        $.Event.addEvent(document, "keydown", function(ev) {
-            if(27 == ev.keyCode) { // ESC 退出
-               closeBox();
-            }
-        });
-
         return $box[0];
     },
 
     closeBox = function() {
         $("#alert_box").hide().remove();
         $.hideWaitingLayer();
-    },
-
-    // 检查是否在texteara外按了enter键
-    checkEnterPress = function(ev){
-        var srcElement = $.Event.getSrcElement(ev);
-        var tagName = srcElement.tagName.toLowerCase();
-        return 13 == ev.keyCode && "textarea" != tagName;
     };
-
 
     // content：内容，title：对话框标题，callback：回调函数    
     $.alert = function(content, title, callback) {
@@ -1944,11 +1934,6 @@
             callback && callback();
         }
         $(".btbox .ok", boxEl).click(ok);
-        $.Event.addEvent(document, "keydown", function(ev) {
-            if( checkEnterPress(ev) ) { 
-               setTimeout(ok, 10);
-            }
-        });
     };
 
     // content：内容，title：对话框标题，callback：回调函数
@@ -1968,11 +1953,6 @@
         }
         $(".btbox .ok", boxEl).click(function() { ok(true); });
         $(".btbox .cancel", boxEl).click(function() { ok(false); });
-        $.Event.addEvent(document, "keydown", function(ev) {
-            if( checkEnterPress(ev) ) { 
-               setTimeout( function() { ok(true); }, 10);
-            }
-        });
     };
 
     // content：内容，deinput：输入框的默认值，title：对话框标题，callback：回调函数
@@ -1991,12 +1971,6 @@
         }
         $(".btbox .ok", boxEl).click(ok);
         $(".btbox .cancel", boxEl).click(closeBox);
-
-        $.Event.addEvent(document, "keydown", function(ev) {
-            if( checkEnterPress(ev) ) { 
-               setTimeout(ok, 10);
-            }
-        });
     };
 
 })(tssJS);
@@ -2067,15 +2041,6 @@
                 }
             });
         }
-
-        $.Event.addEvent(document, "keydown", function(ev) {
-            if(13 == ev.keyCode) { // enter
-                $.Event.cancel(event);
-                $("#bt_login").focus();
-
-                setTimeout(doLogin, 10);
-            }
-        });
 
         $("#bt_login").click( function() { doLogin(); } );
         
@@ -3327,9 +3292,8 @@
             if( !!this.isInstance ) {
                 this.setFocus();
             }
-            if( event ) {
-                $.Event.cancel(event);
-            }
+
+            $.Event.cancel();
             return false;
         }
         return true;
@@ -3554,8 +3518,8 @@
             }
         
             // 绑定事件
-            this.box.onselectstart = function() {
-                event.cancelBubble = true; // 拖动选择事件取消冒泡
+            this.box.onselectstart = function(ev) {
+                $.Event.cancelBubble(ev); // 拖动选择事件取消冒泡
             }
 
             var form = this.box.querySelector("form");
@@ -3655,7 +3619,8 @@
         // 将界面数据更新到Form模板的data/row/里
         updateData: function(el) {
             var newValue;
-            if(event && event.propertyName == "checked") {
+            var ev = window.event;
+            if(ev && ev.propertyName == "checked") {
                 newValue = el.checked == true ? 1 : 0;
             }
             else if(el.tagName.toLowerCase() == "select") {
@@ -6133,9 +6098,9 @@
             oThis.$el.hide();
         });
 
-        function cancelBubble(event) {
+        function cancelBubble(ev) {
             this.onfocus = function () {this.blur()};
-            $.Event.cancel(event)
+            $.Event.cancel(ev)
         }
         $min.addEvent("mousedown", cancelBubble);
         $max.addEvent("mousedown", cancelBubble);
@@ -6234,7 +6199,7 @@ tssJS.fn.extend({
         var elementStart = {x:0, y:0};  // 拖动条起始位置
 
         handle.onmousedown = function(ev) {
-            var oEvent = ev || event;
+            var oEvent = ev || window.event;
             mouseStart.x  = oEvent.clientX;
             mouseStart.y  = oEvent.clientY;
             elementStart.x = element.offsetLeft;
@@ -6253,7 +6218,7 @@ tssJS.fn.extend({
         };
 
         function doDrag(ev) {
-            ev = ev || event;
+            ev = ev || window.event;
 
             var x = ev.clientX - mouseStart.x + elementStart.x;
             var y = ev.clientY - mouseStart.y + elementStart.y;
@@ -6295,7 +6260,7 @@ tssJS.fn.extend({
         var handleStart = {x:0, y:0};  // 拖动条起始位置
 
         handle.onmousedown = function(ev) {
-            var oEvent = ev || event;
+            var oEvent = ev || window.event;
             mouseStart.x  = oEvent.clientX;
             mouseStart.y  = oEvent.clientY;
             handleStart.x = handle.offsetLeft;
@@ -6310,7 +6275,7 @@ tssJS.fn.extend({
         };
 
         function doDrag(ev) {
-            var oEvent = ev || event;
+            var oEvent = ev || window.event;
 
             // 水平移动距离
             if (type == "col" || type == null) {
