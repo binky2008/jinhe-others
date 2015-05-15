@@ -1,0 +1,211 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>noteform</title>
+
+<script src="jquery-1.4.2.js"></script>
+<script>
+
+$(function(){
+		   $("div").click(function(){
+		   $(this).addClass("select");		
+    });
+})
+</script>
+
+<style>
+<!--
+body{
+	background-image:url(wood-bg2.jpg);
+}
+
+.exlist{
+	background-color:#F9EE70;
+	margin:30px auto;
+	padding:5px;
+	width:680px;
+	min-height:200px;
+	height:auto;
+	font-family:"微软雅黑";
+	-webkit-box-shadow:4px 4px 5px #333;/*webkit*/ 
+	-moz-box-shadow:4px 4px 5px #333;/*firefox*/     
+	box-shadow:4px 4px 5px #333;/*opera或ie9*/ 
+}
+
+#title{
+	width:200px;
+	margin:20px auto;
+}
+
+#title legend{
+	font-size:26px;
+}
+
+div.exlist_title{
+	background-color:#F9EE70;
+	width:680px;
+	height:20px;
+}
+
+div.exlist_title img{
+	float:right;
+	margin:-15px 10px;
+}
+
+/*-----------form-----------*/
+
+fieldset{
+	width:90%;
+	border:1px dashed #666;
+	margin:40px auto;
+}
+ 
+legend{
+	background-color:#F9EE70;
+	height:120px;
+	height:30px;
+	color:#630;
+	font-weight:bolder;
+	font-size:20px;
+	line-height:30px;
+	margin:-20px 10px 10px;
+	padding:0 10px;
+}
+  
+ 
+div.row{
+	margin:10px;
+	padding:5px;
+}
+ 
+div.row label{
+	height:20px;
+	font-size:16px;
+	line-height:20px;
+	margin:0 10px;
+}
+ 
+input.txt{
+	background-color:#F9EE70;
+	color:#333;
+	width:150px;
+	height:20px;
+	margin:0 10px;
+	font-size:16px;
+	line-height:20px;
+	border:none;
+	border-bottom:1px solid #565656;
+
+}
+ 
+input.txt:focus{
+	color:#333;
+	background-color: #FF0;
+	border-bottom:1px solid #F00;
+}
+ 
+select{
+	width:100px;
+}
+
+option{
+	text-align:center;
+}
+
+input.btn{
+	width:50px;
+	height:20px;
+	color:#000008B;
+	background-color: transparent;
+	border:0;
+	padding:0;
+}
+
+
+-->
+</style>
+
+</head>
+
+<body>
+
+
+
+
+<div class="exlist">
+    <div class="exlist_title"><img src="paper-clip.png" /></div>
+       <div id="title"><legend>快递运单信息</legend></div>
+       <form method="post" action="">
+           <fieldset>
+           <legend>收件信息</legend>
+                   <div class="row">
+                   <label>1. 收货人:</label>
+                   <input style="width:100px" class="txt" type="text" />
+                   <label>2. 目的地:</label>
+                   <select>
+                   <option>北京</option>
+                   <option>上海</option>
+                   <option>武汉</option>
+                   <option>乌鲁木齐</option>
+                   </select>
+                   </div>
+                   <div class="row">
+                   <label>3. 联系电话:</label><input class="txt" type="text" />
+                   </div>
+                   <div class="row">
+                   <label>4. 详细地址:</label><input class="txt" style="width:400px"  type="text" />
+                   </div>
+           </fieldset>
+           <fieldset>
+           <legend>发件信息</legend>
+                   <div class="row">
+                   <label>1. 发货人:</label>
+                   <input style="width:100px" class="txt" type="text" />
+                   <label>2. 始发地:</label>
+                   <select>
+                   <option>北京</option>
+                   <option>上海</option>
+                   <option>武汉</option>
+                   <option>乌鲁木齐</option>
+                   </select>
+                   </div>
+                   <div class="row">
+                   <label>3. 联系电话:</label><input class="txt" type="text" />
+                   </div>
+                   <div class="row">
+                   <label>4. 详细地址:</label><input class="txt" style="width:400px"  type="text" />
+                   </div>
+           </fieldset>
+           <fieldset>
+           <legend>货物信息</legend>
+                   <div class="row">
+                   <label>1. 数量:</label><input class="txt" style="width:30px" maxlength="2" type="text" />
+                   <label>（1-99件）</label>
+                   <label>2. 体积:</label><input class="txt" style="width:30px" maxlength="3" type="text" />
+                   <label>3. 重量:</label><input class="txt" style="width:30px" maxlength="3" type="text" />
+                   <label>（Kg）</label>
+                   </div>
+                   <div class="row">
+                   <label>4. 运输方式:</label>
+                   <select>
+                   <option>航运</option>
+                   <option>火车</option>
+                   <option>汽车</option>
+                   <option>轮船</option>
+                   </select>
+                   </div>
+             <div class="row">
+               <label>5. 付款方式:</label>
+                   <p>
+                     <label><input type="radio" name="pay" value="单选"/>现金付款</label>
+                     <label><input type="radio" name="pay" value="单选"/>收件人付款</label>
+                     <label><input type="radio" name="pay" value="单选"/>第三方付款</label>
+                   </p>
+               </div>
+           </fieldset>
+        </form>
+        
+</div>
+</body>
+</html>
