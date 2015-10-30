@@ -75,12 +75,12 @@ public class GoogleTranslator {
         	throw new RuntimeException("对中文地址进行URLEncoder时异常", e);
         }
         
-        String googleURI = "http://translate.google.cn/translate_a/t?client=t&text=" + urlEncodedAddress + 
-                "&hl=zh-CN&sl=zh-CN&tl=en&ie=UTF-8&oe=UTF-8&multires=1&otf=1&ssel=0&tsel=0&otf=1&pc=1&ssel=0&tsel=0&sc=1";
+        String googleURI = "https://translate.google.com.hk/translate_a/single?client=t&sl=zh-CN&tl=en&hl=zh-CN&dt=bd&dt=ex&dt=ld&dt=md&dt=qca&dt=rw&dt=rm&dt=ss&dt=t&dt=at&ie=UTF-8&oe=UTF-8&otf=1&ssel=6&tsel=3&kc=1&tk=524025|717846" +
+        		"&q=" + urlEncodedAddress;
         
         HttpClient client = new HttpClient(); 
         GetMethod method = new GetMethod(googleURI);
-        method.setRequestHeader("REQUEST-TYPE", "text/javascript");
+        method.setRequestHeader("REQUEST-TYPE", "application/json; charset=UTF-8");
 	    
         try {
             client.executeMethod(method);
