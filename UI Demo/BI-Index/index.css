@@ -18,6 +18,10 @@ table {
   border-collapse: collapse;
   border-spacing: 0;
 }
+iframe {
+  height: 100%;
+  width: 100%;
+}
 .clearfix {
   display: table;
   zoom: 1;
@@ -27,8 +31,17 @@ table {
   display: block;
   clear: both;
 }
+.longtext {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-all;
+  white-space: nowrap;
+}
 .inline {
   display: inline-block;
+}
+.hidden {
+  display: none;
 }
 header {
   height: 36px;
@@ -49,7 +62,8 @@ header .logo .forename {
 }
 header .logo .surname {
   font-weight: normal;
-  font-size: 1.5em;
+  font-size: 1.6em;
+  margin-left: 2px;
 }
 header ul {
   position: absolute;
@@ -68,26 +82,35 @@ header ul li {
   border-right: 1px solid rgba(204, 204, 204, 0.2);
   color: #fff;
   list-style: none;
+  cursor: pointer;
   font-size: 1em;
-  white-space: nowrap;
   overflow: hidden;
-  word-break: break-all;
   text-overflow: ellipsis;
+  word-break: break-all;
+  white-space: nowrap;
 }
 header ul li.active {
   background-color: #00b0f4;
 }
 section {
   height: 100%;
-  padding-bottom: 36px;
   background-color: #fff;
+  padding-bottom: 66px;
+  /* header + footer = 36 + 30 */
 }
-section .left {
+section .left,
+section .main {
   height: 100%;
-  width: 230px;
   overflow-y: auto;
   display: inline-block;
+}
+section .left {
+  width: 17%;
   background-color: #444359;
+}
+section .main {
+  width: 83%;
+  background-color: red;
 }
 footer {
   position: fixed;
@@ -112,6 +135,7 @@ footer > span table td {
   width: 13px;
   background-color: #fff;
   border: 1px solid #00b0f4;
+  cursor: pointer;
 }
 footer ul {
   position: absolute;
@@ -133,19 +157,16 @@ footer ul li span {
   cursor: pointer;
   max-width: 108px;
   font-size: 1.1em;
-  white-space: nowrap;
   overflow: hidden;
-  word-break: break-all;
   text-overflow: ellipsis;
+  word-break: break-all;
+  white-space: nowrap;
 }
-footer ul li i {
+footer ul li:hover span:after {
   position: absolute;
   top: -1px;
   right: 6px;
-  display: none;
-}
-footer ul li:hover i {
-  display: block;
+  content: "X";
   cursor: pointer;
   font-size: 1.3em;
 }
@@ -196,7 +217,7 @@ footer > div > i:after {
   padding: 12px;
   text-indent: 13px;
   color: #ccc;
-  font-size: 1.1em;
+  font-size: 1.2em;
   font-weight: 700;
   border-bottom: 1px solid rgba(204, 204, 204, 0.2);
   cursor: pointer;
@@ -237,6 +258,10 @@ footer > div > i:after {
   color: #fff;
   text-indent: 30px;
   text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-all;
+  white-space: nowrap;
   transition: all 0.25s ease;
 }
 .accordion ul.submenu li a:hover {

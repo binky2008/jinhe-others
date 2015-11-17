@@ -25,6 +25,9 @@ table {
 	border-collapse: collapse;
 	border-spacing: 0;
 }
+iframe {
+	height: 100%; width: 100%;
+}
 
 .clearfix {
   display: table;
@@ -36,7 +39,10 @@ table {
     clear: both;
   }
 }
+.longtext { overflow: hidden; text-overflow: ellipsis; word-break: break-all; white-space: nowrap; }
+
 .inline { display: inline-block; }
+.hidden { display: none; }
 
 header {
 	height: 36px; background-color: @bgColor; box-sizing: border-box; color: #fff;
@@ -47,7 +53,7 @@ header {
 	  	-moz-osx-font-smoothing: grayscale; 
 
 	  	& .forename { font-weight: bold; font-size: 1.7em; color: #4ecdc4; }
-		& .surname  { font-weight: normal; font-size: 1.5em; }
+		& .surname  { font-weight: normal; font-size: 1.6em; margin-left: 2px; }
 	}
 	
 	& ul { 
@@ -61,12 +67,9 @@ header {
 			line-height: 36px;
 			border-right: 1px solid @blueLight;
 			color: @white;
-			list-style: none;
+			list-style: none; cursor: pointer;
 			font-size: 1em;
-			white-space: nowrap;
-			overflow: hidden;
-			word-break: break-all;
-			text-overflow: ellipsis;
+			.longtext;
 
 			&.active {
 				background-color: @blue;
@@ -77,13 +80,23 @@ header {
 
 section {
 	height: 100%;
-	padding-bottom: 36px;
 	background-color: #fff;
+	padding-bottom: 66px;  /* header + footer = 36 + 30 */
+
+	& .left, & .main {
+		height: 100%; 
+		overflow-y: auto;
+		display: inline-block;
+	}
 
 	& .left {
-		height: 100%; width: 230px; overflow-y: auto;
-		display: inline-block;
+		width: 17%;
 		background-color: @bgColor;
+	}
+
+	& .main {
+		width: 83%;
+		background-color: red;
 	}
 }
 
@@ -96,7 +109,7 @@ footer {
 		width: 50px; height: 30px;  padding: 2px 13px; cursor: pointer; 
 		background-color: @blue; border-right: 1px solid @blueLight;
 
-		& table td { height: 12px; width: 13px; background-color: @white;  border: 1px solid @blue; }					
+		& table td { height: 12px; width: 13px; background-color: @white;  border: 1px solid @blue; cursor: pointer; }					
 	}
 
 	& ul {
@@ -116,19 +129,13 @@ footer {
 				display: inline-block; cursor: pointer;
 				max-width: 108px; 
 				font-size: 1.1em;
-				white-space: nowrap;
-				overflow: hidden;
-				word-break: break-all;
-  				text-overflow: ellipsis;
-			}
-			& i {
-				position: absolute;
-				top: -1px; right: 6px; 
-				display: none;
+				.longtext;
 			}
 
-			&:hover {
-				& i { display: block; cursor: pointer; font-size: 1.3em; }
+			&:hover span:after {
+				position: absolute; top: -1px; right: 6px; 
+				content: "X";
+				cursor: pointer; font-size: 1.3em; 
 			}
 
 			&.active {
@@ -176,7 +183,7 @@ footer {
  		padding: 12px;
  		text-indent: 13px;
  		color: #ccc;
- 		font-size: 1.1em; font-weight: 700;
+ 		font-size: 1.2em; font-weight: 700;
  		border-bottom: 1px solid @blueLight;
  		cursor: pointer;
  		transition: all 0.4s ease;
@@ -186,7 +193,7 @@ footer {
  		&:last-child .link { border-bottom: 0; }
  		& i.tag {
  			position: absolute; top: 12px; right: 12px;
- 			font-size: 1.2em;
+ 			font-size: 1.2em; 
 
  			&:after { content: ">"; }
  		}
@@ -215,6 +222,7 @@ footer {
 	 			color: #fff;
 	 			text-indent: 30px;
 	 			text-decoration: none;
+	 			.longtext;
 	 			transition: all 0.25s ease;
 
 	 			&:hover { background-color: @highLight; }
