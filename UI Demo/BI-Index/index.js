@@ -19,7 +19,7 @@
 
 		$parent.addClass("open");
 		$submenu.addClass("open");
-		$submenu.css("height", (++liSize * 36) + "px");			
+		$submenu.css("height", (liSize * 36) + "px");			
 	}
 
 	Accordion.prototype.openFirst = function() {
@@ -62,39 +62,10 @@
 
 })(tssJS);
 
+
 // init
 ;(function($) {
-	var accordion = $('#ad1').accordion(false);
-	accordion.openFirst();
-
-	$("footer .switch").toggle(
-		function() {
-			$("header").hide();
-			$("section>.left").hide();
-			$("section .main").css("width", "100%");
-			$("section").css("padding-bottom", "30px");
-		},
-		function() {
-			$("header").show();
-			$("section>.left").show();
-			$("section .main").css("width", "83%");
-			$("section").css("padding-bottom", "66px");
-		}
-	);
-
-	$("header li").each(function(i, li) {
-		$li = $(li);
-		$li.attr("onclick", "$.openMenu(this)");
-	});
-
-	$(".submenu a").each(function(i, a) {
-		$a = $(a);
-		$a.attr("href", "javascript:void(0);");
-		$a.attr("onclick", "$.openReport(this)");
-	});
-
 	$.extend({ 
-
 		openMenu: function(li) {
 			var $li = $(li);
 			var mid = $li.attr("mid");
@@ -120,20 +91,31 @@
 			if( !rid ) return;
 
 			var id = "rp_" + rid, iframeId = "iframe_" + rid;
+			var $ul = $("footer ul");
+			var $lis = $ul.find("li");
+			var maxVisible = Math.floor( (document.body.offsetWidth - 225)/135 );
 
-			$("footer ul li").removeClass("active");
+			$ul.find("li").removeClass("active");
+			$(".other ul li").removeClass("active");
 			$("section .main iframe").hide();
 
 			var $li = $("#" + id);
 			if( !$li.length ) {
 				var li = $.createElement("li", "", id);
-				$("footer ul").appendChild(li);
+				li.a = a;
+				li.index = $lis.length;
+
+				// 插入到footer ul				 
+				if( li.index < maxVisible ) {
+					$ul.appendChild(li);
+				}
+				else {
+					var ul = $ul[0];
+					ul.insertBefore(li, $lis[maxVisible]);
+				}
 
 				$li = $(li);
-				$li.html("<span>" + $a.html() + "</span>");
-				$li.find("span").click(function() {
-					$.openReport(a);
-				});
+				$li.html("<span>" + $a.html() + "</span><i>X</>");
 
 				// 创建一个iframe，嵌入报表
 				var iframeEl = $.createElement("iframe", "", iframeId);
@@ -141,11 +123,104 @@
 
 				// TODO 换成report_portlet.html?id=rid
 				$(iframeEl).attr("frameborder", 0).attr("src", "test.html");
+
+				// 添加事件
+				$li.find("span").click(function() {
+					$.openReport(a);
+				});
+				$li.find("i").click( function() {
+					$li.remove();
+					$(iframeEl).remove();
+
+					// 如果关闭的是active li，则需要先切换至第一个li
+					if( $li.hasClass("active") ) {
+						var first = $ul.find("li")[0];
+						first && first.a && $.openReport(first.a);
+					}
+				} );
 			}
 
-			$li.addClass("active");
 			$("#" + iframeId).show();
+			$li.addClass("active");
+
+			// 如果li在不可见区域，则使之可见
+			var li = $li[0];
+			if( li.index >= maxVisible ) {
+				var ul = $ul[0];
+				ul.insertBefore(li, $lis[maxVisible]);
+			}
 		}
+	});
+
+	// TODO 先过滤报表的权限
+	var accordion = $('#ad1').accordion(false);
+
+	$("footer .switch").toggle(
+		function() {
+			$("header").hide();
+			$("section>.left").hide();
+			$("section .main").css("width", "100%");
+			$("section").css("padding-bottom", "30px");
+		},
+		function() {
+			$("header").show();
+			$("section>.left").show();
+			$("section .main").css("width", "83%");
+			$("section").css("padding-bottom", "66px");
+		}
+	);
+
+	$("header li").each(function(i, li) {
+		$li = $(li);
+		$li.attr("onclick", "$.openMenu(this)");
+
+		if(i == 0) {
+			$.openMenu(li);
+		}
+	});
+
+	$(".submenu a").each(function(i, a) {
+		$a = $(a);
+		$a.attr("href", "javascript:void(0);");
+		$a.attr("onclick", "$.openReport(this)");
+
+		// 初次加载时，默认打开第一个首页
+		if(i == 0) {
+			$.openReport(a);
+		}
+	});
+
+	// 右下角三条杠功能实现
+	$("footer>div").toggle(
+		function() { 
+			$(".other").show(true); 
+
+			var maxVisible = Math.floor( (document.body.offsetWidth - 225)/135 );
+			var $lis = $("footer ul li");
+			$lis.each(function(i, li) {
+				if(i > maxVisible) $(".other ul").appendChild( li );
+			});
+		},
+		function() { 
+			$(".other").hide(); 
+
+			var $lis = $(".other ul li[id]");
+			$lis.each(function(i, li) {
+				$("footer ul").appendChild( li );
+			});
+		}
+	);
+
+	$(".other li.b1").click(function() {
+		window.location.href = "/tss/login.html";
+	});
+	$(".other li.b2").click(function() {
+		window.location.href = "/tss/index.portal";
+	});
+	$(".other li.bc").click(function() {
+		$("footer ul li").remove();
+		$(".other ul li[id]").remove();
+		$("section .main iframe").remove();
 	});
 
 })(tssJS);
