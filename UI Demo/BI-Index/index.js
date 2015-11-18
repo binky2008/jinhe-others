@@ -83,6 +83,8 @@
 			$("header li").removeClass("active");
 			$li.addClass("active");
 			accordion.openFirst();
+
+			hideOther();
 		},
 
 		openReport: function(a) {
@@ -142,6 +144,7 @@
 
 			$("#" + iframeId).show();
 			$li.addClass("active");
+			hideOther();
 
 			// 如果li在不可见区域，则使之可见
 			var li = $li[0];
@@ -191,6 +194,14 @@
 	});
 
 	// 右下角三条杠功能实现
+	function hideOther() {
+		$(".other").hide(); 
+
+		var $lis = $(".other ul li[id]");
+		$lis.each(function(i, li) {
+			$("footer ul").appendChild( li );
+		});
+	}
 	$("footer>div").toggle(
 		function() { 
 			$(".other").show(true); 
@@ -200,16 +211,7 @@
 			$lis.each(function(i, li) {
 				if(i > maxVisible) $(".other ul").appendChild( li );
 			});
-		},
-		function() { 
-			$(".other").hide(); 
-
-			var $lis = $(".other ul li[id]");
-			$lis.each(function(i, li) {
-				$("footer ul").appendChild( li );
-			});
-		}
-	);
+		}, hideOther);
 
 	$(".other li.b1").click(function() {
 		window.location.href = "/tss/login.html";
@@ -221,6 +223,7 @@
 		$("footer ul li").remove();
 		$(".other ul li[id]").remove();
 		$("section .main iframe").remove();
+		hideOther();
 	});
 
 })(tssJS);
